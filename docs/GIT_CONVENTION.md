@@ -19,7 +19,7 @@
     - main과 develop 브랜치에는 직접 push하지 않습니다.
 
   | Branch | Description |
-      | --- | --- |
+  | --- | --- |
   | main | 배포 브랜치 |
   | develop | 개발 통합 브랜치 |
   | feature/* | 기능 개발 브랜치 |
