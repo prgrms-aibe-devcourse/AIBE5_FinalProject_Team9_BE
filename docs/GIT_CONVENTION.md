@@ -33,7 +33,7 @@
     - main과 develop 브랜치에는 직접 push하지 않습니다.
 
   | Type | Description | Example |
-      | --- | --- | --- |
+  | --- | --- | --- |
   | `feat/*` | 기능 개발 브랜치 | `feat/12-login` |
   | `fix/*` | 버그 수정 브랜치 | `fix/15-login-error` |
   | `style/*` | UI 및 CSS 수정 브랜치 | `style/20-main-page` |
@@ -45,7 +45,8 @@
   - 브랜치명에 포함되는 번호는 PR 번호가 아닌 관련 Issue 번호를 기준으로 작성합니다.
   - PR 번호는 GitHub에서 Pull Request 생성 시 자동 부여됩니다.
 </br>
-## Branch 전략 ##
+
+## Branch 전략
 
   main과 develop 브랜치에는 직접 push하지 않습니다.
 
