@@ -2,7 +2,7 @@
  ## **Commit Type**
 
   | Type | Description |
-      | --- | --- |
+  | --- | --- |
   | `feat` | 새로운 기능 추가 |
   | `fix` | 버그 수정 |
   | `style` | UI / CSS 수정 |
