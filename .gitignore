@@ -36,9 +36,14 @@ out/
 ### VS Code ###
 .vscode/
 
-## aplication ##
+## application ##
 src/main/resources/application-local.yaml
 src/main/resources/application-prod.yaml
+
+# secret
+.env
+src/main/resources/application-secret.yaml
+src/main/resources/application-secret.yml
 
 ### MacOS / Windows OS Files ###
 .DS_Store
@@ -48,3 +53,9 @@ Icon
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# pem key
+*.pem
+
+# logs
+*.log
