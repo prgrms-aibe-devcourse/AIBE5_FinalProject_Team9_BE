@@ -1,44 +1,34 @@
 package com.grimgate.grimgate_backend.domain.theme.entity;
 
 import jakarta.persistence.*;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
+
 
 @Entity
 @Getter
 @NoArgsConstructor
-public class Theme {
+public class Branch {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "branch_id")
-    private Branch branch;
-
-    private String title;
-    private String description;
-    private String tags;
-    private Integer horrorLevel;
-    private Integer difficulty;
-    private Integer ageLimit;
-    private Integer playTime;
-    private Integer minPeople;
-    private Integer maxPeople;
-    private Integer price;
-    private Double rating;
-    private Integer reviewCount;
-    private String thumbnailUrl;
+    private Long managerId;
+    private String branchCode;
+    private String branchName;
+    private String region;
+    private String address;
+    private String phone;
+    private String operatingHours;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
-
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-
 }
