@@ -39,7 +39,6 @@ out/
 ## application ##
 src/main/resources/application-local.yaml
 src/main/resources/application-prod.yaml
-src/main/resources/application-prod.yml
 
 # secret
 .env
@@ -60,3 +59,6 @@ Desktop.ini
 
 # logs
 *.log
+
+# Claude Code
+CLAUDE.md
