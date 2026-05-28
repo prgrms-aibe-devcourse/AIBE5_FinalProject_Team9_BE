@@ -13,6 +13,10 @@ public class CustomException extends RuntimeException {
     // 사용자에게 전달할 에러 메시지
     private final String message;
 
+    public CustomException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.httpStatus = errorCode.getHttpStatus();
+        this.message = errorCode.getMessage();
     public CustomException(HttpStatus httpStatus, String message) {
         super(message);
         this.httpStatus = httpStatus;
