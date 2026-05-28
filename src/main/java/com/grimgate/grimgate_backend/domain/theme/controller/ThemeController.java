@@ -1,17 +1,25 @@
 package com.grimgate.grimgate_backend.domain.theme.controller;
 
-import com.grimgate.grimgate_backend.domain.theme.dto.TimeSlotResponse;
+import com.grimgate.grimgate_backend.domain.theme.dto.BranchDetailResponse;
+import com.grimgate.grimgate_backend.domain.theme.dto.ThemeDetailResponse;
+import com.grimgate.grimgate_backend.domain.theme.dto.ThemeResponse;
+import com.grimgate.grimgate_backend.domain.theme.dto.ThemeSearchCondition;
+import com.grimgate.grimgate_backend.domain.theme.entity.Theme;
+import com.grimgate.grimgate_backend.domain.theme.repository.ThemeRepository;
 import com.grimgate.grimgate_backend.domain.theme.service.ThemeService;
-import java.time.LocalDate;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.grimgate.grimgate_backend.domain.theme.dto.TimeSlotResponse;
+import com.grimgate.grimgate_backend.domain.theme.service.ThemeService;
+import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,6 +27,24 @@ import org.springframework.web.bind.annotation.RestController;
 public class ThemeController {
 
     private final ThemeService themeService;
+
+    @GetMapping("")
+    public List<ThemeResponse> getThemes(
+            ThemeSearchCondition condition
+    ) {
+        return themeService.getThemes(condition);
+    }
+
+    @GetMapping("/{id}")
+    public ThemeDetailResponse getThemeDetail(@PathVariable Long id) {
+        return themeService.getThemeDetail(id);
+    }
+
+    @GetMapping("/branches/{id}")
+    public BranchDetailResponse getBranches(@PathVariable Long id) {
+        return themeService.getBranches(id);
+    }
+
 
     /**
      * 특정 테마의 특정 날짜에 해당하는 타임슬롯 목록을 조회합니다.

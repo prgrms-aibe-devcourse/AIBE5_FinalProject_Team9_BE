@@ -1,24 +1,33 @@
 package com.grimgate.grimgate_backend.domain.theme.service;
 
-import com.grimgate.grimgate_backend.domain.theme.dto.TimeSlotResponse;
-import com.grimgate.grimgate_backend.domain.theme.entity.TimeSlot;
+import com.grimgate.grimgate_backend.domain.theme.dto.BranchDetailResponse;
+import com.grimgate.grimgate_backend.domain.theme.dto.ThemeDetailResponse;
+import com.grimgate.grimgate_backend.domain.theme.dto.ThemeResponse;
+import com.grimgate.grimgate_backend.domain.theme.dto.ThemeSearchCondition;
+import com.grimgate.grimgate_backend.domain.theme.entity.Branch;
+import com.grimgate.grimgate_backend.domain.theme.entity.Theme;
+import com.grimgate.grimgate_backend.domain.theme.repository.BranchRepository;
 import com.grimgate.grimgate_backend.domain.theme.repository.ThemeRepository;
-import com.grimgate.grimgate_backend.domain.theme.repository.TimeSlotRepository;
-import java.time.LocalDate;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import com.grimgate.grimgate_backend.domain.theme.dto.TimeSlotResponse;
+import com.grimgate.grimgate_backend.domain.theme.entity.TimeSlot;
+import com.grimgate.grimgate_backend.domain.theme.repository.TimeSlotRepository;
+import java.time.LocalDate;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
  * 방탈출 테마 관련 비즈니스 로직을 처리하는 서비스 클래스입니다.
- * 
+ *
  * [Service 계층에서 테마 검증과 슬롯 조회를 처리하는 이유]
  * - Controller는 클라이언트와의 인터페이스(요청 매핑, 단순 파라미터 타입 변환 등)에 집중해야 합니다.
  * - 비즈니스 정합성(예: 테마의 실존 여부 검증) 및 비즈니스 예외 처리는 트랜잭션 경계 안에서 안전하게 보호되어야 하므로 Service 계층에서 담당합니다.
- * - 데이터 조회 로직과 검증 로직이 결합된 핵심 워크플로우를 Service 계층에 둠으로써, 향후 다른 API나 내부 로직에서 
+ * - 데이터 조회 로직과 검증 로직이 결합된 핵심 워크플로우를 Service 계층에 둠으로써, 향후 다른 API나 내부 로직에서
  *   동일한 검증 프로세스를 재사용할 수 있으며, 데이터베이스 계층의 영속성 컨텍스트(Lazy Loading 등)를 안정적으로 활용할 수 있습니다.
  */
 @Service
@@ -27,7 +36,83 @@ import org.springframework.web.server.ResponseStatusException;
 public class ThemeService {
 
     private final ThemeRepository themeRepository;
+    private final BranchRepository branchRepository;
     private final TimeSlotRepository timeSlotRepository;
+
+    public List<ThemeResponse> getThemes(
+            ThemeSearchCondition condition
+    ){
+        return themeRepository.findAll()
+                .stream()
+                //난이도 필터
+                .filter(theme -> condition.getDifficulty() == null
+                        || theme.getDifficulty().equals(condition.getDifficulty())
+                )
+                //지역 필터
+                .filter(theme -> condition.getRegion() == null
+                        || theme.getBranch().getRegion().equals(condition.getRegion())
+                )
+
+                // 최소 인원 필터
+                .filter(theme ->
+                        condition.getMin_people() == null
+                                || theme.getMinPeople().equals( condition.getMin_people())
+                )
+
+                //최소 평점
+                .filter(theme -> condition.getMin_rating()== null
+                        || theme.getRating() >=condition.getMin_rating()
+                )
+                //공포도
+                .filter(theme -> condition.getHorror_level() == null
+                || theme.getHorrorLevel().equals(condition.getHorror_level()))
+
+                .map(theme -> new ThemeResponse(
+                        theme.getId(),
+                        theme.getThumbnailUrl(),
+                        theme.getBranch().getBranchName(),
+                        theme.getTitle(),
+                        theme.getDifficulty(),
+                        theme.getHorrorLevel(),
+                        theme.getRating(),
+                        theme.getReviewCount(),
+                        theme.getMinPeople(),
+                        theme.getMaxPeople(),
+                        theme.getPlayTime(),
+                        theme.getDescription()
+                ))
+                .toList();
+    }
+
+    public ThemeDetailResponse getThemeDetail(Long id){
+        Theme theme = themeRepository.findById(id).orElseThrow();
+
+        return new ThemeDetailResponse(
+                theme.getBranch().getBranchCode(),
+                theme.getBranch().getBranchName(),
+                theme.getBranch().getRegion(),
+                theme.getBranch().getAddress(),
+                theme.getBranch().getPhone(),
+                theme.getBranch().getOperatingHours(),
+                theme.getMinPeople(),
+                theme.getMaxPeople(),
+                theme.getDescription(),
+                theme.getPlayTime()
+        );
+    }
+
+    public BranchDetailResponse getBranches(Long id){
+        Branch branch = branchRepository.findById(id).orElseThrow();
+        return new BranchDetailResponse(
+                branch.getBranchName(),
+                branch.getRegion(),
+                branch.getOperatingHours(),
+                branch.getPhone(),
+                branch.getAddress()
+
+
+        );
+    }
 
     /**
      * 특정 테마의 특정 날짜에 해당하는 예약 가능 타임슬롯 목록을 조회합니다.
