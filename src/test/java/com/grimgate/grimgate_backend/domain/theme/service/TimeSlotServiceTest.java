@@ -13,7 +13,6 @@ import com.grimgate.grimgate_backend.domain.theme.entity.Theme;
 import com.grimgate.grimgate_backend.domain.theme.entity.TimeSlot;
 import com.grimgate.grimgate_backend.domain.theme.entity.TimeSlotStatus;
 import com.grimgate.grimgate_backend.domain.theme.repository.TimeSlotRepository;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
@@ -77,14 +76,14 @@ class TimeSlotServiceTest {
                 .id(10L)
                 .title("낮은평점테마")
                 .branch(branch)
-                .rating(BigDecimal.valueOf(3.5))
+                .rating(3.5)
                 .build();
 
         Theme themeHighRating = Theme.builder()
                 .id(20L)
                 .title("높은평점테마")
                 .branch(branch)
-                .rating(BigDecimal.valueOf(4.8))
+                .rating(4.8)
                 .build();
 
         // 10번 테마 슬롯 2개 (순서 섞어서 모의 데이터 구성)
@@ -152,14 +151,14 @@ class TimeSlotServiceTest {
                 .id(10L)
                 .title("늦은예약테마")
                 .branch(branch)
-                .rating(BigDecimal.valueOf(4.5))
+                .rating(4.5)
                 .build();
 
         Theme themeEarly = Theme.builder()
                 .id(20L)
                 .title("빠른예약테마")
                 .branch(branch)
-                .rating(BigDecimal.valueOf(4.0))
+                .rating(4.0)
                 .build();
 
         // 10번 테마: 오늘 18:00 슬롯

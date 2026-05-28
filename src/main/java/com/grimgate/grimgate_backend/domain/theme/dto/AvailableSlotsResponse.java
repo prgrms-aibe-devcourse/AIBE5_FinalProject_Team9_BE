@@ -1,6 +1,5 @@
 package com.grimgate.grimgate_backend.domain.theme.dto;
 
-import java.math.BigDecimal;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +19,7 @@ public class AvailableSlotsResponse {
     private final Long branchId;
     private final String branchName;
     private final String region;
-    private final BigDecimal rating;
+    private final Double rating;
     private final Integer reviewCount;
     private final Integer difficulty;
     private final Integer horrorLevel;
@@ -32,7 +31,7 @@ public class AvailableSlotsResponse {
 
     @Builder
     public AvailableSlotsResponse(Long themeId, String themeTitle, Long branchId, String branchName,
-                                  String region, BigDecimal rating, Integer reviewCount, Integer difficulty,
+                                  String region, Double rating, Integer reviewCount, Integer difficulty,
                                   Integer horrorLevel, Integer minPeople, Integer maxPeople, Integer price,
                                   String thumbnailUrl, List<TimeSlotInfo> availableSlots) {
         this.themeId = themeId;

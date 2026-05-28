@@ -6,7 +6,6 @@ import com.grimgate.grimgate_backend.domain.theme.entity.Theme;
 import com.grimgate.grimgate_backend.domain.theme.entity.TimeSlot;
 import com.grimgate.grimgate_backend.domain.theme.entity.TimeSlotStatus;
 import com.grimgate.grimgate_backend.domain.theme.repository.TimeSlotRepository;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -54,7 +53,7 @@ public class TimeSlotService {
             Integer peopleCount,
             Integer horrorLevel,
             Integer difficulty,
-            BigDecimal minRating,
+            Double minRating,
             String sort
     ) {
         // 1. 날짜 기본값 설정 (오늘 ~ 오늘+2일)
@@ -114,7 +113,7 @@ public class TimeSlotService {
                             .availableSlots(slotInfos)
                             .build();
                 })
-                .collect(Collectors.collectingAndThen(Collectors.toList(), java.util.ArrayList::new));
+                .collect(Collectors.toCollection(java.util.ArrayList::new));
 
         // 6. 요청 정렬 옵션에 따라 테마들을 최종 정렬
         if ("start_time_asc".equalsIgnoreCase(sort)) {
@@ -142,8 +141,8 @@ public class TimeSlotService {
                 }
                 
                 // 1순위 시간 조건이 같은 경우, 평점이 더 높은 테마가 우선 노출
-                BigDecimal rating1 = r1.getRating() != null ? r1.getRating() : BigDecimal.ZERO;
-                BigDecimal rating2 = r2.getRating() != null ? r2.getRating() : BigDecimal.ZERO;
+                Double rating1 = r1.getRating() != null ? r1.getRating() : 0.0;
+                Double rating2 = r2.getRating() != null ? r2.getRating() : 0.0;
                 int ratingComp = rating2.compareTo(rating1);
                 if (ratingComp != 0) {
                     return ratingComp;
@@ -154,8 +153,8 @@ public class TimeSlotService {
         } else {
             // 기본 정렬: 평점 높은 순(rating_desc)
             responses.sort((r1, r2) -> {
-                BigDecimal rating1 = r1.getRating() != null ? r1.getRating() : BigDecimal.ZERO;
-                BigDecimal rating2 = r2.getRating() != null ? r2.getRating() : BigDecimal.ZERO;
+                Double rating1 = r1.getRating() != null ? r1.getRating() : 0.0;
+                Double rating2 = r2.getRating() != null ? r2.getRating() : 0.0;
                 int ratingComp = rating2.compareTo(rating1);
                 if (ratingComp != 0) {
                     return ratingComp;

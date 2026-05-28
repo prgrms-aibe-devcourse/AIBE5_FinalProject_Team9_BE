@@ -2,7 +2,6 @@ package com.grimgate.grimgate_backend.domain.theme.controller;
 
 import com.grimgate.grimgate_backend.domain.theme.dto.AvailableSlotsResponse;
 import com.grimgate.grimgate_backend.domain.theme.service.TimeSlotService;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +50,7 @@ public class TimeSlotController {
             @RequestParam(value = "people_count", required = false) Integer peopleCount,
             @RequestParam(value = "horror_level", required = false) Integer horrorLevel,
             @RequestParam(value = "difficulty", required = false) Integer difficulty,
-            @RequestParam(value = "min_rating", required = false) BigDecimal minRating,
+            @RequestParam(value = "min_rating", required = false) Double minRating,
             @RequestParam(value = "sort", required = false, defaultValue = "rating_desc") String sort
     ) {
         List<AvailableSlotsResponse> response = timeSlotService.getAvailableSlots(

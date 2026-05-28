@@ -2,7 +2,6 @@ package com.grimgate.grimgate_backend.domain.theme.repository;
 
 import com.grimgate.grimgate_backend.domain.theme.entity.TimeSlot;
 import com.grimgate.grimgate_backend.domain.theme.entity.TimeSlotStatus;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -51,6 +50,6 @@ public interface TimeSlotRepository extends JpaRepository<TimeSlot, Long> {
             @Param("peopleCount") Integer peopleCount,
             @Param("horrorLevel") Integer horrorLevel,
             @Param("difficulty") Integer difficulty,
-            @Param("minRating") BigDecimal minRating
+            @Param("minRating") Double minRating
     );
 }
