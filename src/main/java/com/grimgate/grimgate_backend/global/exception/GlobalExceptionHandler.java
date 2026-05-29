@@ -1,14 +1,17 @@
 package com.grimgate.grimgate_backend.global.exception;
 
 import com.grimgate.grimgate_backend.global.response.ApiResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 // 전역 예외 처리 핸들러
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -43,9 +46,18 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.fail("지원하지 않는 HTTP 메서드입니다."));
     }
 
+    // ResponseStatusException 처리 (404, 409 등 상태 코드와 메시지 매핑)
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ApiResponse<Void>> handleResponseStatusException(ResponseStatusException e) {
+        return ResponseEntity
+                .status(e.getStatusCode())
+                .body(ApiResponse.fail(e.getReason()));
+    }
+
     // 500: 그 외 처리되지 않은 예외 (서버 내부 오류)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+        log.error("Unhandled exception", e);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.fail("서버 내부 오류가 발생했습니다."));
