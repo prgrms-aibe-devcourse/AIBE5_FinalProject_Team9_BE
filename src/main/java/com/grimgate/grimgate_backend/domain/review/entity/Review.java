@@ -3,7 +3,7 @@ package com.grimgate.grimgate_backend.domain.review.entity;
 
 import com.grimgate.grimgate_backend.domain.reservation.entity.Reservation;
 import com.grimgate.grimgate_backend.domain.theme.entity.Theme;
-import com.grimgate.grimgate_backend.domain.user.entity.Member;
+import com.grimgate.grimgate_backend.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
