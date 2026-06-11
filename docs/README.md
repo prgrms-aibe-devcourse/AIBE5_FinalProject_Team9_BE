@@ -83,9 +83,9 @@ GrimGate는 공포 방탈출을 즐기는 사용자가 온라인에서 테마를
 ## 팀원 역할
 <div align="center">
 
-| <img src="https://github.com/Lee1sd.png" width="100"/> | <img src="https://github.com/sdg3729.png" width="100"/> | <img src="https://github.com/SooBin111.png" width="100"/> | <img src="https://github.com/Keunbyeol931.png" width="100"/> | <img src="https://github.com/sangjin025.png" width="100"/> |
+| [![이건희](https://github.com/Lee1sd.png)](https://github.com/Lee1sd) | [![노윤희](https://github.com/sdg3729.png)](https://github.com/sdg3729) | [![박수빈](https://github.com/SooBin111.png)](https://github.com/SooBin111) | [![전큰별](https://github.com/Keunbyeol931.png)](https://github.com/Keunbyeol931) | [![유상진](https://github.com/sangjin025.png)](https://github.com/sangjin025) |
 |:---:|:---:|:---:|:---:|:---:|
-| 이건희<br>후기 및 전체테마, AI 추천 | 노윤희<br>결제, 예약 | 박수빈<br>로그인/회원가입, 마이페이지 | 전큰별<br>메이트모집, 게임 구현 | 유상진<br>프론트엔드 |
+| **이건희**<br>후기 및 전체테마, AI 추천 | **노윤희**<br>결제, 예약 | **박수빈**<br>로그인/회원가입, 마이페이지 | **전큰별**<br>메이트모집, 게임 구현 | **유상진**<br>프론트엔드 |
 
 </div>
 
