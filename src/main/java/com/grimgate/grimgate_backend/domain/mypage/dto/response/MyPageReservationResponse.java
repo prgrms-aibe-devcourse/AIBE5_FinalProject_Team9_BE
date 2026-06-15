@@ -29,4 +29,10 @@ public class MyPageReservationResponse {
 
     // 예정 예약이면 null
     private Integer clearTime;
+
+    private String themeImageUrl;
+
+    private Integer horrorLevel;
+
+    private Integer difficulty;
 }

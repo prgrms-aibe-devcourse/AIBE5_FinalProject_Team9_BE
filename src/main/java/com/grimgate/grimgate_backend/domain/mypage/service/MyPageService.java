@@ -112,6 +112,9 @@ public class MyPageService {
                         .status(r.getStatus().name())
                         .isCleared("UPCOMING".equals(type) ? null : r.getIsCleared())
                         .clearTime(r.getClearTime() == null ? null : r.getClearTime().toSecondOfDay())
+                        .themeImageUrl(r.getTimeSlot().getTheme().getThumbnailUrl())
+                        .horrorLevel(r.getTimeSlot().getTheme().getHorrorLevel())
+                        .difficulty(r.getTimeSlot().getTheme().getDifficulty())
                         .build())
                 .collect(Collectors.toList());
     }
