@@ -11,6 +11,8 @@ import com.grimgate.grimgate_backend.domain.payment.dto.PaymentReadyRequest;
 import com.grimgate.grimgate_backend.domain.payment.dto.PaymentReadyResponse;
 import com.grimgate.grimgate_backend.domain.payment.dto.PaymentConfirmRequest;
 import com.grimgate.grimgate_backend.domain.payment.dto.PaymentConfirmResponse;
+import com.grimgate.grimgate_backend.domain.payment.dto.PaymentRefundRequest;
+import com.grimgate.grimgate_backend.domain.payment.dto.PaymentRefundResponse;
 import com.grimgate.grimgate_backend.domain.payment.entity.PaymentStatus;
 import com.grimgate.grimgate_backend.domain.payment.service.PaymentService;
 import org.junit.jupiter.api.DisplayName;
@@ -186,5 +188,55 @@ class PaymentControllerTest {
                 .andExpect(status().isOk());
 
         org.mockito.Mockito.verify(paymentService).processWebhook(payload, signature, transmissionTime);
+    }
+
+    @Test
+    @DisplayName("POST /api/payments/{paymentId}/refund - 결제 환불 요청 성공")
+    void refundPayment_Success() throws Exception {
+        // given
+        Long paymentId = 1L;
+        PaymentRefundRequest request = PaymentRefundRequest.builder()
+                .cancelReason("고객 변심")
+                .build();
+
+        PaymentRefundResponse response = PaymentRefundResponse.builder()
+                .paymentId(paymentId)
+                .orderId("order-uuid-xyz")
+                .status(PaymentStatus.PAY_REFUNDED)
+                .refundAmount(22000)
+                .refundedAt(java.time.LocalDateTime.now())
+                .cancelReason("고객 변심")
+                .build();
+
+        when(paymentService.refundPayment(any(Long.class), any(PaymentRefundRequest.class))).thenReturn(response);
+
+        // when & then
+        mockMvc.perform(post("/api/payments/{paymentId}/refund", paymentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("환불 처리가 완료되었습니다."))
+                .andExpect(jsonPath("$.data.paymentId").value(paymentId))
+                .andExpect(jsonPath("$.data.status").value("PAY_REFUNDED"))
+                .andExpect(jsonPath("$.data.cancelReason").value("고객 변심"));
+    }
+
+    @Test
+    @DisplayName("POST /api/payments/{paymentId}/refund - 환불 사유 누락 시 400 BAD_REQUEST 반환")
+    void refundPayment_ValidationFailure_MissingReason() throws Exception {
+        // given
+        Long paymentId = 1L;
+        PaymentRefundRequest request = PaymentRefundRequest.builder()
+                .cancelReason("") // 빈 사유
+                .build();
+
+        // when & then
+        mockMvc.perform(post("/api/payments/{paymentId}/refund", paymentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("환불 사유는 필수입니다."));
     }
 }

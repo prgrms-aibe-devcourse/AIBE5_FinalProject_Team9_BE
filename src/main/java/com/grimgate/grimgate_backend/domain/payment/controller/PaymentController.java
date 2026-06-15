@@ -4,11 +4,14 @@ import com.grimgate.grimgate_backend.domain.payment.dto.PaymentConfirmRequest;
 import com.grimgate.grimgate_backend.domain.payment.dto.PaymentConfirmResponse;
 import com.grimgate.grimgate_backend.domain.payment.dto.PaymentReadyRequest;
 import com.grimgate.grimgate_backend.domain.payment.dto.PaymentReadyResponse;
+import com.grimgate.grimgate_backend.domain.payment.dto.PaymentRefundRequest;
+import com.grimgate.grimgate_backend.domain.payment.dto.PaymentRefundResponse;
 import com.grimgate.grimgate_backend.domain.payment.service.PaymentService;
 import com.grimgate.grimgate_backend.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -60,5 +63,22 @@ public class PaymentController {
     ) {
         paymentService.processWebhook(payload, signature, transmissionTime);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 결제 환불 API
+     * 토스페이먼츠 환불 요청을 처리합니다.
+     *
+     * @param paymentId 결제 ID
+     * @param request 환불 요청 DTO
+     * @return 결제 환불 완료 결과 응답 DTO
+     */
+    @PostMapping("/{paymentId}/refund")
+    public ResponseEntity<ApiResponse<PaymentRefundResponse>> refundPayment(
+            @PathVariable Long paymentId,
+            @Valid @RequestBody PaymentRefundRequest request
+    ) {
+        PaymentRefundResponse response = paymentService.refundPayment(paymentId, request);
+        return ResponseEntity.ok(ApiResponse.success("환불 처리가 완료되었습니다.", response));
     }
 }

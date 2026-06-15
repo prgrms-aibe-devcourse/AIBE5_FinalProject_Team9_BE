@@ -13,8 +13,11 @@ import com.grimgate.grimgate_backend.domain.payment.dto.PaymentReadyRequest;
 import com.grimgate.grimgate_backend.domain.payment.dto.PaymentReadyResponse;
 import com.grimgate.grimgate_backend.domain.payment.dto.PaymentConfirmRequest;
 import com.grimgate.grimgate_backend.domain.payment.dto.PaymentConfirmResponse;
+import com.grimgate.grimgate_backend.domain.payment.dto.PaymentRefundRequest;
+import com.grimgate.grimgate_backend.domain.payment.dto.PaymentRefundResponse;
 import com.grimgate.grimgate_backend.domain.payment.client.TossPaymentsClient;
 import com.grimgate.grimgate_backend.domain.payment.client.TossPaymentsClient.TossConfirmResponseDto;
+import com.grimgate.grimgate_backend.domain.payment.client.TossPaymentsClient.TossCancelResponseDto;
 import com.grimgate.grimgate_backend.domain.payment.entity.Payment;
 import com.grimgate.grimgate_backend.domain.payment.entity.PaymentStatus;
 import com.grimgate.grimgate_backend.domain.payment.repository.PaymentRepository;
@@ -58,6 +61,9 @@ class PaymentServiceTest {
 
     @Mock
     private PaymentConfirmHelper paymentConfirmHelper;
+
+    @Mock
+    private PaymentRefundHelper paymentRefundHelper;
 
     @InjectMocks
     private PaymentService paymentService;
@@ -698,5 +704,157 @@ class PaymentServiceTest {
         assertThatThrownBy(() -> paymentService.processWebhook(payload, null, null))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.WEBHOOK_VERIFICATION_FAILED.getMessage());
+    }
+
+    @Test
+    @DisplayName("결제 환불 성공 - 정상적인 환불 대기 건의 환불이 진행되면 PAY_REFUNDED 상태가 반환된다")
+    void refundPayment_Success() {
+        // given
+        Long paymentId = 1L;
+        String paymentKey = "toss-key-xyz";
+        String orderId = "order-uuid-123";
+        String cancelReason = "고객 변심";
+        Integer amount = 22000;
+
+        PaymentRefundRequest request = PaymentRefundRequest.builder()
+                .cancelReason(cancelReason)
+                .build();
+
+        Payment paymentBefore = Payment.builder()
+                .id(paymentId)
+                .paymentKey(paymentKey)
+                .orderId(orderId)
+                .amount(amount)
+                .status(PaymentStatus.PAY_REFUND_PENDING)
+                .build();
+
+        when(paymentRefundHelper.validateRefund(paymentId)).thenReturn(paymentBefore);
+
+        TossCancelResponseDto tossResponse = new TossCancelResponseDto(
+                paymentKey,
+                orderId,
+                "CANCELED",
+                java.util.List.of(new TossCancelResponseDto.TossCancelDetail(
+                        amount,
+                        cancelReason,
+                        "2026-06-15T11:00:00+09:00"
+                ))
+        );
+        when(tossPaymentsClient.cancel(paymentKey, cancelReason)).thenReturn(tossResponse);
+
+        Payment paymentAfter = Payment.builder()
+                .id(paymentId)
+                .paymentKey(paymentKey)
+                .orderId(orderId)
+                .amount(amount)
+                .refundAmount(amount)
+                .refundedAt(LocalDateTime.parse("2026-06-15T11:00:00"))
+                .cancelReason(cancelReason)
+                .status(PaymentStatus.PAY_REFUNDED)
+                .build();
+
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(paymentAfter));
+
+        // when
+        PaymentRefundResponse response = paymentService.refundPayment(paymentId, request);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getPaymentId()).isEqualTo(paymentId);
+        assertThat(response.getStatus()).isEqualTo(PaymentStatus.PAY_REFUNDED);
+        assertThat(response.getRefundAmount()).isEqualTo(amount);
+        assertThat(response.getCancelReason()).isEqualTo(cancelReason);
+
+        verify(paymentRefundHelper).validateRefund(paymentId);
+        verify(tossPaymentsClient).cancel(paymentKey, cancelReason);
+        verify(paymentRefundHelper).saveRefundSuccess(
+                org.mockito.ArgumentMatchers.eq(paymentId),
+                org.mockito.ArgumentMatchers.eq(amount),
+                any(LocalDateTime.class),
+                org.mockito.ArgumentMatchers.eq(cancelReason)
+        );
+    }
+
+    @Test
+    @DisplayName("결제 환불 멱등성 보장 - 이미 PAY_REFUNDED인 상태일 때 Toss API 호출 없이 성공 결과를 즉시 반환한다")
+    void refundPayment_AlreadyRefunded() {
+        // given
+        Long paymentId = 1L;
+        String paymentKey = "toss-key-xyz";
+        String orderId = "order-uuid-123";
+        String cancelReason = "고객 변심";
+        Integer amount = 22000;
+
+        PaymentRefundRequest request = PaymentRefundRequest.builder()
+                .cancelReason(cancelReason)
+                .build();
+
+        Payment payment = Payment.builder()
+                .id(paymentId)
+                .paymentKey(paymentKey)
+                .orderId(orderId)
+                .amount(amount)
+                .refundAmount(amount)
+                .refundedAt(LocalDateTime.now())
+                .cancelReason(cancelReason)
+                .status(PaymentStatus.PAY_REFUNDED)
+                .build();
+
+        when(paymentRefundHelper.validateRefund(paymentId)).thenReturn(payment);
+
+        // when
+        PaymentRefundResponse response = paymentService.refundPayment(paymentId, request);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getPaymentId()).isEqualTo(paymentId);
+        assertThat(response.getStatus()).isEqualTo(PaymentStatus.PAY_REFUNDED);
+
+        Mockito.verifyNoInteractions(tossPaymentsClient);
+        Mockito.verifyNoMoreInteractions(paymentRefundHelper);
+    }
+
+    @Test
+    @DisplayName("결제 환불 실패 - Toss API에서 4xx 오류 반환 시 CustomException을 던지며 상태변경 저장을 수행하지 않는다")
+    void refundPayment_TossClientError() {
+        // given
+        Long paymentId = 1L;
+        String paymentKey = "toss-key-xyz";
+        String orderId = "order-uuid-123";
+        String cancelReason = "고객 변심";
+
+        PaymentRefundRequest request = PaymentRefundRequest.builder()
+                .cancelReason(cancelReason)
+                .build();
+
+        Payment payment = Payment.builder()
+                .id(paymentId)
+                .paymentKey(paymentKey)
+                .orderId(orderId)
+                .amount(22000)
+                .status(PaymentStatus.PAY_REFUND_PENDING)
+                .build();
+
+        when(paymentRefundHelper.validateRefund(paymentId)).thenReturn(payment);
+
+        byte[] bodyBytes = "{\"code\":\"ALREADY_CANCELED_PAYMENT\",\"message\":\"이미 취소된 결제입니다.\"}".getBytes();
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+        
+        org.springframework.web.reactive.function.client.WebClientResponseException mockException = 
+                new org.springframework.web.reactive.function.client.WebClientResponseException(
+                        400, "Bad Request", headers, bodyBytes, java.nio.charset.StandardCharsets.UTF_8
+                );
+
+        when(tossPaymentsClient.cancel(paymentKey, cancelReason)).thenThrow(mockException);
+
+        // when & then
+        assertThatThrownBy(() -> paymentService.refundPayment(paymentId, request))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining("토스 환불 API 호출 중 에러가 발생했습니다");
+
+        verify(paymentRefundHelper).validateRefund(paymentId);
+        verify(tossPaymentsClient).cancel(paymentKey, cancelReason);
+        Mockito.verifyNoMoreInteractions(paymentRefundHelper); // saveRefundSuccess가 호출되지 않아야 함
     }
 }

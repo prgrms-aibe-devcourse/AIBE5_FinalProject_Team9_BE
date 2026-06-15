@@ -9,8 +9,11 @@ import com.grimgate.grimgate_backend.domain.payment.entity.PaymentStatus;
 import com.grimgate.grimgate_backend.domain.payment.repository.PaymentRepository;
 import com.grimgate.grimgate_backend.domain.payment.client.TossPaymentsClient;
 import com.grimgate.grimgate_backend.domain.payment.client.TossPaymentsClient.TossConfirmResponseDto;
+import com.grimgate.grimgate_backend.domain.payment.client.TossPaymentsClient.TossCancelResponseDto;
 import com.grimgate.grimgate_backend.domain.payment.dto.PaymentConfirmRequest;
 import com.grimgate.grimgate_backend.domain.payment.dto.PaymentConfirmResponse;
+import com.grimgate.grimgate_backend.domain.payment.dto.PaymentRefundRequest;
+import com.grimgate.grimgate_backend.domain.payment.dto.PaymentRefundResponse;
 import com.grimgate.grimgate_backend.domain.reservation.entity.Reservation;
 import com.grimgate.grimgate_backend.domain.reservation.entity.ReservationStatus;
 import com.grimgate.grimgate_backend.domain.reservation.repository.ReservationRepository;
@@ -21,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grimgate.grimgate_backend.domain.payment.dto.PaymentWebhookRequest;
 import java.nio.charset.StandardCharsets;
@@ -30,8 +34,10 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -42,6 +48,7 @@ public class PaymentService {
     private final MemberRepository memberRepository;
     private final TossPaymentsClient tossPaymentsClient;
     private final PaymentConfirmHelper paymentConfirmHelper;
+    private final PaymentRefundHelper paymentRefundHelper;
     private final ObjectMapper objectMapper;
 
     @Value("${toss.webhook-secret-key:dummy_webhook_secret_key}")
@@ -130,6 +137,7 @@ public class PaymentService {
      * @param request 결제 승인 요청 DTO
      * @return 결제 승인 완료 결과 응답 DTO
      */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public PaymentConfirmResponse confirmPayment(PaymentConfirmRequest request) {
         // 1. orderId 기준 Payment 조회
         Payment payment = paymentRepository.findByOrderId(request.getOrderId())
@@ -266,6 +274,71 @@ public class PaymentService {
             throw e;
         } catch (Exception e) {
             throw new CustomException(ErrorCode.WEBHOOK_VERIFICATION_FAILED);
+        }
+    }
+
+    /**
+     * 결제 환불(취소) 단계를 처리합니다.
+     * 외부 PG API 호출로 인한 DB 커넥션 풀 고갈을 방지하고자 트랜잭션 없이 시작하여 내부 헬퍼 전이 메서드들을 호출합니다.
+     *
+     * @param paymentId 결제 ID
+     * @param request 환불 요청 DTO
+     * @return 결제 환불 결과 응답 DTO
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public PaymentRefundResponse refundPayment(Long paymentId, PaymentRefundRequest request) {
+        // 1. 사전 검증 트랜잭션 호출
+        Payment payment = paymentRefundHelper.validateRefund(paymentId);
+
+        // 2. 멱등성 보장 (이미 PAY_REFUNDED 상태라면 Toss API 호출 없이 성공 응답 반환)
+        if (payment.getStatus() == PaymentStatus.PAY_REFUNDED) {
+            return PaymentRefundResponse.of(payment);
+        }
+
+        String paymentKey = payment.getPaymentKey();
+        String orderId = payment.getOrderId();
+
+        try {
+            // 3. 토스페이먼츠 결제 취소 API 연동 호출 (비트랜잭션)
+            TossCancelResponseDto tossResponse = tossPaymentsClient.cancel(paymentKey, request.getCancelReason());
+
+            LocalDateTime refundedAt = LocalDateTime.now();
+            Integer refundAmount = payment.getAmount();
+
+            if (tossResponse.cancels() != null && !tossResponse.cancels().isEmpty()) {
+                TossCancelResponseDto.TossCancelDetail cancelDetail = tossResponse.cancels().get(0);
+                if (cancelDetail.canceledAt() != null) {
+                    refundedAt = LocalDateTime.parse(cancelDetail.canceledAt(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                }
+                if (cancelDetail.cancelAmount() != null) {
+                    refundAmount = cancelDetail.cancelAmount();
+                }
+            }
+
+            // 4. 성공 시: PAY_REFUNDED 상태 저장 트랜잭션 호출
+            paymentRefundHelper.saveRefundSuccess(
+                    paymentId,
+                    refundAmount,
+                    refundedAt,
+                    request.getCancelReason()
+            );
+
+            // 데이터 정합성이 확보된 최종 객체 재조회 후 응답
+            Payment refundedPayment = paymentRepository.findById(paymentId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+            return PaymentRefundResponse.of(refundedPayment);
+
+        } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
+            // Toss API 오류 - 4xx 또는 5xx
+            log.error("Toss refund failed - paymentId: {}, orderId: {}, paymentKey: {}, cancelReason: {}, message: {}, body: {}",
+                    paymentId, orderId, paymentKey, request.getCancelReason(), e.getMessage(), e.getResponseBodyAsString(), e);
+            throw new CustomException(HttpStatus.valueOf(e.getStatusCode().value()), "토스 환불 API 호출 중 에러가 발생했습니다: " + e.getResponseBodyAsString());
+        } catch (Exception e) {
+            // 네트워크 오류, 타임아웃, 예외 발생
+            log.error("Toss refund failed (Network/Timeout/Unexpected) - paymentId: {}, orderId: {}, paymentKey: {}, cancelReason: {}, message: {}",
+                    paymentId, orderId, paymentKey, request.getCancelReason(), e.getMessage(), e);
+            throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR, "환불 처리 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 }

@@ -79,6 +79,8 @@ public enum ErrorCode {
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 내역을 찾을 수 없습니다."),
     INVALID_PAYMENT_STATUS(HttpStatus.BAD_REQUEST, "결제 승인이 가능한 상태가 아닙니다."),
     WEBHOOK_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "웹훅 서명 검증에 실패했습니다."),
+    INVALID_REFUND_STATUS(HttpStatus.BAD_REQUEST, "환불이 가능한 결제 상태가 아닙니다."),
+    PAYMENT_KEY_MISSING(HttpStatus.BAD_REQUEST, "결제 고유 키(paymentKey)가 존재하지 않습니다."),
 
     // 엑셀 내보내기
     EXCEL_EXPORT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "엑셀 파일 생성에 실패했습니다.");

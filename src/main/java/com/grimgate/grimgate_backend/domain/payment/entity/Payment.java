@@ -147,6 +147,14 @@ public class Payment extends BaseTimeEntity {
         this.cancelReason = cancelReason;
     }
 
+    // 환불 처리가 완료되었을 때 상태를 PAY_REFUNDED로 변경하고 환불 세부정보를 저장합니다.
+    public void refundSuccess(Integer refundAmount, LocalDateTime refundedAt, String cancelReason) {
+        this.status = PaymentStatus.PAY_REFUNDED;
+        this.refundAmount = refundAmount;
+        this.refundedAt = refundedAt;
+        this.cancelReason = cancelReason;
+    }
+
     // 결제 시간 초과(timeout) 처리를 수행하며 상태를 PAYMENT_TIMEOUT으로 변경합니다.
     public void timeout() {
         this.status = PaymentStatus.PAYMENT_TIMEOUT;

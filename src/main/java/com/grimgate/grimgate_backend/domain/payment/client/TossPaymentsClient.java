@@ -55,4 +55,39 @@ public class TossPaymentsClient {
             String method,
             String approvedAt
     ) {}
+
+    /**
+     * 토스페이먼츠 결제 취소(환불) API를 연동하여 호출합니다.
+     *
+     * @param paymentKey PG사 결제 식별 키
+     * @param cancelReason 환불 사유
+     * @return 토스페이먼츠 API 취소 완료 응답 객체
+     */
+    public TossCancelResponseDto cancel(String paymentKey, String cancelReason) {
+        String basicAuth = Base64.getEncoder().encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
+
+        return webClient.post()
+                .uri("/v1/payments/" + paymentKey + "/cancel")
+                .header(HttpHeaders.AUTHORIZATION, "Basic " + basicAuth)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(new TossCancelRequest(cancelReason))
+                .retrieve()
+                .bodyToMono(TossCancelResponseDto.class)
+                .block();
+    }
+
+    private record TossCancelRequest(String cancelReason) {}
+
+    public record TossCancelResponseDto(
+            String paymentKey,
+            String orderId,
+            String status,
+            java.util.List<TossCancelDetail> cancels
+    ) {
+        public record TossCancelDetail(
+                Integer cancelAmount,
+                String cancelReason,
+                String canceledAt
+        ) {}
+    }
 }

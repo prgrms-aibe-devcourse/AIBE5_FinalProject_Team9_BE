@@ -65,7 +65,7 @@ public class ThemeService {
                 //최소 평점
                 .filter(theme -> condition.getMinRating()== null
                         || condition.getMinRating() == 0.0
-                        || theme.getRating() >=condition.getMinRating()
+                        || (theme.getRating() != null &&theme.getRating() >=condition.getMinRating())
                 )
                 //공포도
                 .filter(theme -> condition.getHorrorLevel() == null

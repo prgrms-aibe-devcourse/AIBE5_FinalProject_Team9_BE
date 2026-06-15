@@ -72,8 +72,8 @@ public class OwnerService {
                 .thumbnailUrl(thumbnailUrl)
                 .build();
 
-        themeRepository.save(theme);
-        return new ThemeCreateResponse(theme.getId(), theme.getCreatedAt());
+        Theme savedTheme = themeRepository.save(theme);
+        return new ThemeCreateResponse(savedTheme.getId(), savedTheme.getCreatedAt());
     }
 
     // 테마 수정

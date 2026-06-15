@@ -215,7 +215,8 @@ public class Theme {
             Integer price,
             Double rating,
             Integer reviewCount,
-            String thumbnailUrl
+            String thumbnailUrl,
+            LocalDateTime createdAt
     ) {
         this.id = id;
         this.branch = branch;
@@ -232,6 +233,7 @@ public class Theme {
         this.rating = rating;
         this.reviewCount = reviewCount;
         this.thumbnailUrl = thumbnailUrl;
+        this.createdAt = createdAt;
     }
 
 

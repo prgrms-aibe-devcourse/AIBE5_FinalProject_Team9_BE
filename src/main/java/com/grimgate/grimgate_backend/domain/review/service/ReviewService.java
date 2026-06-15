@@ -66,14 +66,16 @@ public class ReviewService {
                 .toList();
 
         // 4. 조합해서 반환
+        double rating = theme.getRating() != null ? theme.getRating() : 0.0;
+
         return new ReviewTabResponse(
-                theme.getRating(),
+                rating,
                 theme.getReviewCount(),
                 theme.getMinPeople(),
                 theme.getMaxPeople(),
                 theme.getPlayTime(),
                 theme.getThumbnailUrl(),
-                theme.getRating(), //평균
+                rating, //평균
                 distribution,
                 reviews
         );

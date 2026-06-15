@@ -35,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
@@ -108,6 +109,7 @@ public class OwnerServiceTest {
                         return Theme.builder()
                                 .id(1L)
                                 .branch(t.getBranch())
+                                .createdAt(LocalDateTime.now())
                                 .build();
                     });
 
