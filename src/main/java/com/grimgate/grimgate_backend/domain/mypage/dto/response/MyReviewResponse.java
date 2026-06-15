@@ -8,6 +8,7 @@ import java.util.List;
 
 @Getter
 public class MyReviewResponse {
+    private Long reviewId;
     private String themeTitle;
     private Long themeId;
     private String nickname;
@@ -22,6 +23,7 @@ public class MyReviewResponse {
 
     @Builder
     public MyReviewResponse(
+            Long reviewId,
             String themeTitle,
             Long themeId,
             String nickname,
@@ -34,6 +36,7 @@ public class MyReviewResponse {
             LocalDateTime createdAt,
             List<String> imageUrls
     ) {
+        this.reviewId = reviewId;
         this.themeTitle = themeTitle;
         this.themeId = themeId;
         this.nickname = nickname;
