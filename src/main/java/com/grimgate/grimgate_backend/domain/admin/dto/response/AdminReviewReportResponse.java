@@ -37,6 +37,10 @@ public class AdminReviewReportResponse {
     /** 신고 생성일시 */
     private LocalDateTime createdAt;
 
+    private String themeTitle;
+    private Integer rating;
+    private String adminReason;
+
     /**
      * ReviewReport 엔티티로부터 응답 DTO 생성
      */
@@ -50,6 +54,9 @@ public class AdminReviewReportResponse {
                 .ownerReason(report.getOwnerReason())
                 .status(report.getStatus().name())
                 .createdAt(report.getCreatedAt())
+                .themeTitle(report.getReview().getTheme().getTitle())
+                .rating(report.getReview().getRating())
+                .adminReason(report.getAdminReason())
                 .build();
     }
 }

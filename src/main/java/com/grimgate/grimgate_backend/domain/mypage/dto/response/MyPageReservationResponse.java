@@ -29,4 +29,6 @@ public class MyPageReservationResponse {
 
     // 예정 예약이면 null
     private Integer clearTime;
+
+    private Boolean hasReview;
 }

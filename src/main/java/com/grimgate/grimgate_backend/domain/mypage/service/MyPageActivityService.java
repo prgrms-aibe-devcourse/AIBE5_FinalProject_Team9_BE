@@ -53,6 +53,7 @@ public class MyPageActivityService {
                                 .toList();
 
                       return MyReviewResponse.builder()
+                              .reviewId(review.getId())
                               .themeTitle(review.getTheme().getTitle())
                               .themeId(review.getTheme().getId())
                               .nickname(review.getMember().getAccount().getNickname())
