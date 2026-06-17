@@ -171,6 +171,27 @@ public class MatePostService {
         return MatePostListResponse.from(mapped);
     }
 
+    /* ===== Manual close ===== */
+
+    @Transactional
+    public void close(Long accountId, Long postId) {
+        Member author = resolveMember(accountId);
+        // 비관적 락으로 동시 참여 요청과 충돌 방지
+        MatePost post = matePostRepository.findByIdForUpdate(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MATE_POST_NOT_FOUND));
+        if (post.isDeleted()) {
+            throw new CustomException(ErrorCode.MATE_POST_NOT_FOUND);
+        }
+        if (!post.isAuthor(author.getId())) {
+            throw new CustomException(ErrorCode.MATE_POST_FORBIDDEN);
+        }
+        // RECRUITING 또는 CLOSING_SOON 상태일 때만 수동 마감 가능
+        if (!post.isRecruitable()) {
+            throw new CustomException(ErrorCode.MATE_POST_CANNOT_CLOSE);
+        }
+        post.close();
+    }
+
     /* ===== Soft delete ===== */
 
     @Transactional
