@@ -247,9 +247,18 @@ public class ReservationService {
         reservation.cancel();
         Reservation savedReservation = reservationRepository.save(reservation);
 
+        Long paymentId = null;
+        if (oldStatus == ReservationStatus.CONFIRMED) {
+            Payment payment = paymentRepository.findByReservationId(reservationId).orElse(null);
+            if (payment != null) {
+                paymentId = payment.getId();
+            }
+        }
+
         return ReservationCancelResponse.builder()
                 .reservationId(savedReservation.getId())
                 .status(savedReservation.getStatus().name())
+                .paymentId(paymentId)
                 .build();
     }
 }

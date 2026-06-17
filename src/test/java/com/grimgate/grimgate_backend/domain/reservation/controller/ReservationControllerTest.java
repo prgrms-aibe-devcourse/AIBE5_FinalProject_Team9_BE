@@ -1,12 +1,15 @@
 package com.grimgate.grimgate_backend.domain.reservation.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grimgate.grimgate_backend.domain.payment.entity.Payment;
+import com.grimgate.grimgate_backend.domain.payment.service.PaymentService;
 import com.grimgate.grimgate_backend.domain.reservation.dto.ReservationCancelResponse;
 import com.grimgate.grimgate_backend.domain.reservation.dto.ReservationCreateRequest;
 import com.grimgate.grimgate_backend.domain.reservation.dto.ReservationCreateResponse;
@@ -35,6 +38,9 @@ class ReservationControllerTest {
 
     @MockBean
     private ReservationService reservationService;
+
+    @MockBean
+    private PaymentService paymentService;
 
     @MockBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
@@ -135,13 +141,14 @@ class ReservationControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/reservations/{reservationId}/cancel - 예약 취소 성공 시 200 OK와 ApiResponse 형식의 결과 반환")
-    void cancelReservation_Success() throws Exception {
+    @DisplayName("POST /api/reservations/{reservationId}/cancel - 예약 취소 성공 시 200 OK와 ApiResponse 형식의 결과 반환 (환불 미대상)")
+    void cancelReservation_Success_NoRefund() throws Exception {
         // given
         Long reservationId = 50L;
         ReservationCancelResponse response = ReservationCancelResponse.builder()
                 .reservationId(reservationId)
                 .status("CANCELLED")
+                .paymentId(null)
                 .build();
 
         when(reservationService.cancelReservation(reservationId)).thenReturn(response);
@@ -153,6 +160,68 @@ class ReservationControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("예약이 취소되었습니다."))
                 .andExpect(jsonPath("$.data.reservationId").value(50))
+                .andExpect(jsonPath("$.data.status").value("CANCELLED"))
+                .andExpect(jsonPath("$.data.paymentId").value(org.hamcrest.CoreMatchers.nullValue()));
+    }
+
+    @Test
+    @DisplayName("POST /api/reservations/{reservationId}/cancel - CONFIRMED 예약 취소 성공 및 자동 환불 정상 연계")
+    void cancelReservation_Success_WithRefund() throws Exception {
+        // given
+        Long reservationId = 50L;
+        Long paymentId = 100L;
+        ReservationCancelResponse response = ReservationCancelResponse.builder()
+                .reservationId(reservationId)
+                .status("CANCELLED")
+                .paymentId(paymentId)
+                .build();
+
+        when(reservationService.cancelReservation(reservationId)).thenReturn(response);
+
+        // when & then
+        mockMvc.perform(post("/api/reservations/{reservationId}/cancel", reservationId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("예약이 취소되었습니다."))
+                .andExpect(jsonPath("$.data.reservationId").value(50))
+                .andExpect(jsonPath("$.data.status").value("CANCELLED"))
+                .andExpect(jsonPath("$.data.paymentId").value(100));
+
+        org.mockito.Mockito.verify(paymentService).refundPayment(
+                eq(paymentId),
+                any(com.grimgate.grimgate_backend.domain.payment.dto.PaymentRefundRequest.class)
+        );
+    }
+
+    @Test
+    @DisplayName("POST /api/reservations/{reservationId}/cancel - Toss 환불 실패 시에도 예약 취소는 성공으로 반환")
+    void cancelReservation_RefundFailed_StillSucceeds() throws Exception {
+        // given
+        Long reservationId = 50L;
+        Long paymentId = 100L;
+        ReservationCancelResponse response = ReservationCancelResponse.builder()
+                .reservationId(reservationId)
+                .status("CANCELLED")
+                .paymentId(paymentId)
+                .build();
+
+        when(reservationService.cancelReservation(reservationId)).thenReturn(response);
+        org.mockito.Mockito.doThrow(new RuntimeException("Toss API Error"))
+                .when(paymentService).refundPayment(eq(paymentId), any(com.grimgate.grimgate_backend.domain.payment.dto.PaymentRefundRequest.class));
+
+        // when & then
+        mockMvc.perform(post("/api/reservations/{reservationId}/cancel", reservationId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("예약이 취소되었습니다."))
+                .andExpect(jsonPath("$.data.reservationId").value(50))
                 .andExpect(jsonPath("$.data.status").value("CANCELLED"));
+
+        org.mockito.Mockito.verify(paymentService).refundPayment(
+                eq(paymentId),
+                any(com.grimgate.grimgate_backend.domain.payment.dto.PaymentRefundRequest.class)
+        );
     }
 }
