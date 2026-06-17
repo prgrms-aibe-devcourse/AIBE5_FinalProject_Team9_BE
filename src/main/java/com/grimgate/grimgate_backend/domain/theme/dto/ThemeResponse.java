@@ -24,6 +24,7 @@ public class ThemeResponse {
     private String description;
     private Integer price;
     private String createdAt;
+    private Integer ageLimit;
 
     public static ThemeResponse from(Theme theme) {
         return new ThemeResponse(
@@ -42,7 +43,8 @@ public class ThemeResponse {
                 theme.getPlayTime(),
                 theme.getDescription(),
                 theme.getPrice(),
-                theme.getCreatedAt() != null ? theme.getCreatedAt().toString() : null
+                theme.getCreatedAt() != null ? theme.getCreatedAt().toString() : null,
+                theme.getAgeLimit()
         );
     }
 }
