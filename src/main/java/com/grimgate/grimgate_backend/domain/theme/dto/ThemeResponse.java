@@ -22,6 +22,8 @@ public class ThemeResponse {
     private String tags;
     private Integer playTime;
     private String description;
+    private Integer price;
+    private String createdAt;
 
     public static ThemeResponse from(Theme theme) {
         return new ThemeResponse(
@@ -38,7 +40,9 @@ public class ThemeResponse {
                 theme.getMaxPeople(),
                 theme.getTags(),
                 theme.getPlayTime(),
-                theme.getDescription()
+                theme.getDescription(),
+                theme.getPrice(),
+                theme.getCreatedAt() != null ? theme.getCreatedAt().toString() : null
         );
     }
 }
