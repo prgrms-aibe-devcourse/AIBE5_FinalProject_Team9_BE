@@ -331,13 +331,13 @@ public class PaymentService {
 
         } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
             // Toss API 오류 - 4xx 또는 5xx
-            log.error("Toss refund failed - paymentId: {}, orderId: {}, paymentKey: {}, cancelReason: {}, message: {}, body: {}",
-                    paymentId, orderId, paymentKey, request.getCancelReason(), e.getMessage(), e.getResponseBodyAsString(), e);
+            log.error("Toss refund failed - reservationId: {}, paymentId: {}, orderId: {}, paymentKey: {}, cancelReason: {}, message: {}, body: {}",
+                    payment.getReservation() != null ? payment.getReservation().getId() : null, paymentId, orderId, paymentKey, request.getCancelReason(), e.getMessage(), e.getResponseBodyAsString(), e);
             throw new CustomException(HttpStatus.valueOf(e.getStatusCode().value()), "토스 환불 API 호출 중 에러가 발생했습니다: " + e.getResponseBodyAsString());
         } catch (Exception e) {
             // 네트워크 오류, 타임아웃, 예외 발생
-            log.error("Toss refund failed (Network/Timeout/Unexpected) - paymentId: {}, orderId: {}, paymentKey: {}, cancelReason: {}, message: {}",
-                    paymentId, orderId, paymentKey, request.getCancelReason(), e.getMessage(), e);
+            log.error("Toss refund failed (Network/Timeout/Unexpected) - reservationId: {}, paymentId: {}, orderId: {}, paymentKey: {}, cancelReason: {}, message: {}",
+                    payment.getReservation() != null ? payment.getReservation().getId() : null, paymentId, orderId, paymentKey, request.getCancelReason(), e.getMessage(), e);
             throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR, "환불 처리 중 오류가 발생했습니다: " + e.getMessage());
         }
     }

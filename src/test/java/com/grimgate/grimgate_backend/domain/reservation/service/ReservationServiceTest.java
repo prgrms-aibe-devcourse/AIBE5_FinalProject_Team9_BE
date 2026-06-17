@@ -694,6 +694,7 @@ class ReservationServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getReservationId()).isEqualTo(reservationId);
         assertThat(response.getStatus()).isEqualTo("CANCELLED");
+        assertThat(response.getPaymentId()).isNull();
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAY_FAILED);
         assertThat(payment.getCancelReason()).isEqualTo("사용자 예약 취소로 결제 진행 중단");
 
@@ -782,6 +783,7 @@ class ReservationServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getReservationId()).isEqualTo(reservationId);
         assertThat(response.getStatus()).isEqualTo("CANCELLED");
+        assertThat(response.getPaymentId()).isEqualTo(100L);
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAY_REFUND_PENDING);
         assertThat(payment.getCancelReason()).isEqualTo("사용자 예약 취소로 인한 환불 대기");
 
