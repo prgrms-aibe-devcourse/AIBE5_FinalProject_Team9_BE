@@ -20,7 +20,6 @@ public class MyReviewResponse {
     private Boolean spoiler;
     private LocalDateTime createdAt;
     private List<String> imageUrls;
-    private Long reviewId;
     private LocalDateTime visitedAt;
 
     @Builder
@@ -37,7 +36,6 @@ public class MyReviewResponse {
             Boolean spoiler,
             LocalDateTime createdAt,
             List<String> imageUrls,
-            Long reviewId,
             LocalDateTime visitedAt
     ) {
         this.reviewId = reviewId;
@@ -52,7 +50,6 @@ public class MyReviewResponse {
         this.spoiler = spoiler;
         this.createdAt = createdAt;
         this.imageUrls = imageUrls;
-        this.reviewId = reviewId;
         this.visitedAt = visitedAt;
     }
 }
