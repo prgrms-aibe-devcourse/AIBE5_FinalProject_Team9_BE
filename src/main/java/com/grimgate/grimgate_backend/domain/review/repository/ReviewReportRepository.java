@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface ReviewReportRepository extends JpaRepository<ReviewReport, Long> {
 
@@ -21,4 +23,6 @@ public interface ReviewReportRepository extends JpaRepository<ReviewReport, Long
 
     // 사장님 자기 지점 후기 신고 목록 조회 (branch.managerId 기준 필터)
     Page<ReviewReport> findByReview_Theme_Branch_ManagerId(Long managerId, Pageable pageable);
+
+    Page<ReviewReport> findByStatusIn(List<ReviewReportStatus> statuses, Pageable pageable);
 }

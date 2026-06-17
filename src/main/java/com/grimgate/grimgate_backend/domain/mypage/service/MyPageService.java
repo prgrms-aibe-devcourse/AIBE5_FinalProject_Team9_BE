@@ -11,6 +11,7 @@ import com.grimgate.grimgate_backend.domain.mypage.dto.response.MyPageStatsRespo
 import com.grimgate.grimgate_backend.domain.reservation.entity.Reservation;
 import com.grimgate.grimgate_backend.domain.reservation.entity.ReservationStatus;
 import com.grimgate.grimgate_backend.domain.reservation.repository.ReservationRepository;
+import com.grimgate.grimgate_backend.domain.review.repository.ReviewRepository;
 import com.grimgate.grimgate_backend.domain.title.repository.TitleRepository;
 import com.grimgate.grimgate_backend.domain.title.service.TitleService;
 import com.grimgate.grimgate_backend.global.exception.CustomException;
@@ -39,6 +40,7 @@ public class MyPageService {
     private final MemberAchievementRepository memberAchievementRepository;
     private final AchievementRepository achievementRepository;
     private final TitleRepository titleRepository;
+    private final ReviewRepository reviewRepository;
 
     /**
      * 마이페이지 통계 정보 조회 및 칭호 갱신
@@ -112,6 +114,7 @@ public class MyPageService {
                         .status(r.getStatus().name())
                         .isCleared("UPCOMING".equals(type) ? null : r.getIsCleared())
                         .clearTime(r.getClearTime() == null ? null : r.getClearTime().toSecondOfDay())
+                        .hasReview(reviewRepository.existsByReservationId(r.getId()))
                         .build())
                 .collect(Collectors.toList());
     }

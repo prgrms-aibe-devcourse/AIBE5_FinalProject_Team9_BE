@@ -34,6 +34,12 @@ public class OwnerReviewReportResponse {
 
     // 신고 접수 일시
     private LocalDateTime createdAt;
+    private Integer rating;
+    private Boolean spoiler;
+    private String themeTitle;
+
+    //사장님 신고 사유
+    private String ownerReason;
 
     public static OwnerReviewReportResponse from(ReviewReport report) {
         return OwnerReviewReportResponse.builder()
@@ -45,6 +51,10 @@ public class OwnerReviewReportResponse {
                 .detail(report.getDetail())
                 .status(report.getStatus().name())
                 .createdAt(report.getCreatedAt())
+                .rating(report.getReview().getRating())      // 추가
+                .spoiler(report.getReview().getSpoiler())
+                .themeTitle(report.getReview().getTheme().getTitle())
+                .ownerReason(report.getOwnerReason())
                 .build();
     }
 }
