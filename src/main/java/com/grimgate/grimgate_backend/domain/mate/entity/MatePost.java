@@ -170,6 +170,11 @@ public class MatePost extends BaseTimeEntity {
         return this.deletedAt != null || this.status == MatePostStatus.DELETED;
     }
 
+    /** 작성자 수동 마감 — 기존 참여자는 유지하고 신규 참여만 차단 */
+    public void close() {
+        this.status = MatePostStatus.CLOSED;
+    }
+
     /** soft delete */
     public void softDelete() {
         this.status = MatePostStatus.DELETED;
