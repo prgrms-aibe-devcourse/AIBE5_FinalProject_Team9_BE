@@ -31,7 +31,7 @@ public class AiRecommendService {
     public AiRecommendResponse recommend(AiRecommendRequest request) {
         String userMessage = extractLastUserMessage(request);
 
-        // Java에서 먼저 필터링 후 최대 5개만 Gemini에 전달
+        // Java에서 먼저 필터링 후 최대 1개만 Gemini에 전달
         List<Theme> filteredThemes = filterThemesByKeyword(userMessage);
 
         String systemPrompt = buildSystemPrompt(filteredThemes);
@@ -53,10 +53,10 @@ public class AiRecommendService {
     }
 
     /**
-     * AI-002: 랜덤 테마 3개 추천 (Gemini 호출 없음)
+     * AI-002: 랜덤 테마 1개 추천 (Gemini 호출 없음)
      */
     public List<AiRecommendResponse.ThemeCard> random() {
-        return themeRepository.findRandom(3)
+        return themeRepository.findRandom(1)
                 .stream()
                 .map(AiRecommendResponse.ThemeCard::from)
                 .toList();
@@ -97,12 +97,12 @@ public class AiRecommendService {
                 themes = themeRepository.findByMinPeopleLessThanEqual(people);
             } else {
                 //조건 없으면 랜덤 3개
-                themes = themeRepository.findRandom(3);
+                themes = themeRepository.findRandom(1);
             }
         }
 
         // 최대 개만 Gemini에 전달
-        return themes.stream().limit(3).toList();
+        return themes.stream().limit(1).toList();
     }
 
     private String extractLastUserMessage(AiRecommendRequest request) {
@@ -120,7 +120,7 @@ public class AiRecommendService {
                 이 중에서 사용자의 의도에 가장 잘 맞는 테마를 선택해서 추천 사유와 함께 JSON으로 반환해줘.
                 응답 형식을 절대 벗어나지 마. 다른 텍스트는 절대 포함하지 마.
                 
-                추천할 경우: {"type": "recommendation", "theme_ids": [1,2,3], "message": "사용자 맞춤 추천 이유"}
+                추천할 경우: {"type": "recommendation", "theme_ids": [1], "message": "사용자 맞춤 추천 이유"}
                 추천 불가 시: {"type": "message", "message": "부드러운 대화 답변"}
                 
                 엄선된 후보 테마 목록:
@@ -168,7 +168,7 @@ public class AiRecommendService {
 
         } catch (Exception e) {
             log.warn("Gemini 응답 파싱 실패: {}", e.getMessage());
-            return AiRecommendResponse.fallback(themeRepository.findRandom(3));
+            return AiRecommendResponse.fallback(themeRepository.findRandom(1));
         }
     }
 }

@@ -133,10 +133,13 @@ public class AdminReviewService {
     @Transactional(readOnly = true)
     public Page<AdminReviewReportResponse> getReviewReports(int page, int limit) {
         Pageable pageable = PageRequest.of(page, limit);
-        Page<ReviewReport> reports = reviewReportRepository.findByStatus(
-                ReviewReportStatus.REQUESTED_ADMIN_REVIEW, pageable
+        List<ReviewReportStatus> statuses = List.of(
+                ReviewReportStatus.REQUESTED_ADMIN_REVIEW,
+                ReviewReportStatus.ADMIN_APPROVED,
+                ReviewReportStatus.ADMIN_REJECTED
         );
-        return reports.map(AdminReviewReportResponse::from);
+        return reviewReportRepository.findByStatusIn(statuses, pageable)
+                .map(AdminReviewReportResponse::from);
     }
 
     // 관리자 후기 신고 승인 처리

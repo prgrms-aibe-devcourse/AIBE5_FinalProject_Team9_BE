@@ -16,11 +16,13 @@ public class ThemeDetailResponse extends TabCommonResponse {
     private Integer horrorLevel;
     private Integer price;
     private String description;
+    private Integer ageLimit;
 
     public ThemeDetailResponse(Double rating, Integer reviewCount, Integer minPeople,
                                Integer maxPeople, Integer playTime,String thumbnailUrl,
                                Long branchId, String branchCode, String branchName, String region,
-                              Integer difficulty,Integer horrorLevel, Integer price, String description) {
+                              Integer difficulty,Integer horrorLevel, Integer price, String description,
+                              Integer ageLimit) {
         super(rating, reviewCount, minPeople, maxPeople, playTime, thumbnailUrl);
         this.branchId = branchId;
         this.branchCode = branchCode;
@@ -30,6 +32,7 @@ public class ThemeDetailResponse extends TabCommonResponse {
         this.horrorLevel = horrorLevel;
         this.price = price;
         this.description = description;
+        this.ageLimit = ageLimit;
     }
 
 

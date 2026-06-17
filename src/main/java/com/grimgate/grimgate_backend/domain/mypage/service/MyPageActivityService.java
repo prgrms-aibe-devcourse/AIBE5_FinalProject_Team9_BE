@@ -65,6 +65,10 @@ public class MyPageActivityService {
                         .spoiler(review.getSpoiler())
                         .createdAt(review.getCreatedAt())
                               .imageUrls(imageUrls)
+                              .visitedAt(review.getReservation() != null ?
+                                      review.getReservation().getTimeSlot().getSlotDate().atTime(
+                                              review.getReservation().getTimeSlot().getStartTime()
+                                      ) : null)
                         .build();
                 })
                 .toList();

@@ -94,7 +94,10 @@ public class ThemeService {
                         theme.getMaxPeople(),
                         theme.getTags(),
                         theme.getPlayTime(),
-                        theme.getDescription()
+                        theme.getDescription(),
+                        theme.getPrice(),
+                        theme.getCreatedAt() != null ? theme.getCreatedAt().toString() : null,
+                        theme.getAgeLimit()
                 ))
                 .toList();
     }
@@ -116,7 +119,8 @@ public class ThemeService {
                 theme.getDifficulty(),
                 theme.getHorrorLevel(),
                 theme.getPrice(),
-                theme.getDescription()
+                theme.getDescription(),
+                theme.getAgeLimit()
         );
     }
 
