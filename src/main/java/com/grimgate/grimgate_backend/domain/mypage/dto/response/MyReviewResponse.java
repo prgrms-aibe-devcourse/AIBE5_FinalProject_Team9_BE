@@ -20,6 +20,7 @@ public class MyReviewResponse {
     private LocalDateTime createdAt;
     private List<String> imageUrls;
     private Long reviewId;
+    private LocalDateTime visitedAt;
 
     @Builder
     public MyReviewResponse(
@@ -34,7 +35,8 @@ public class MyReviewResponse {
             Boolean spoiler,
             LocalDateTime createdAt,
             List<String> imageUrls,
-            Long reviewId
+            Long reviewId,
+            LocalDateTime visitedAt
     ) {
         this.themeTitle = themeTitle;
         this.themeId = themeId;
@@ -48,5 +50,6 @@ public class MyReviewResponse {
         this.createdAt = createdAt;
         this.imageUrls = imageUrls;
         this.reviewId = reviewId;
+        this.visitedAt = visitedAt;
     }
 }

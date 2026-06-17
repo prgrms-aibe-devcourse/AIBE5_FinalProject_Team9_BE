@@ -94,7 +94,9 @@ public class ThemeService {
                         theme.getMaxPeople(),
                         theme.getTags(),
                         theme.getPlayTime(),
-                        theme.getDescription()
+                        theme.getDescription(),
+                        theme.getPrice(),
+                        theme.getCreatedAt() != null ? theme.getCreatedAt().toString() : null
                 ))
                 .toList();
     }
