@@ -70,9 +70,10 @@ public class AiRecommendService {
     private List<Theme> filterThemesByKeyword(String userMessage) {
         List<Theme> themes;
 
-        if (userMessage.contains("무서운") || userMessage.contains("공포") || userMessage.contains("극한")) {
+        if (userMessage.contains("극한") || (userMessage.contains("무서운") && !userMessage.contains("못"))) {
             themes = themeRepository.findByHorrorLevel(5);
-        } else if (userMessage.contains("약한") || userMessage.contains("무섭지 않은") || userMessage.contains("가벼운")) {
+        } else if (userMessage.contains("약한") || userMessage.contains("무섭지 않은") || userMessage.contains("가벼운")
+                || (userMessage.contains("무서운") && userMessage.contains("못"))) {
             themes = themeRepository.findByHorrorLevelLessThanEqual(2);
         } else if (userMessage.contains("어려운") || userMessage.contains("난이도 높은") || userMessage.contains("고난이도")) {
             themes = themeRepository.findByDifficultyGreaterThanEqual(4);
@@ -96,7 +97,7 @@ public class AiRecommendService {
                 int people = Integer.parseInt(matcher.group(1));
                 themes = themeRepository.findByMinPeopleLessThanEqual(people);
             } else {
-                //조건 없으면 랜덤 3개
+                //조건 없으면 랜덤 1개
                 themes = themeRepository.findRandom(1);
             }
         }
@@ -116,7 +117,11 @@ public class AiRecommendService {
     private String buildSystemPrompt(List<Theme> filteredThemes) {
         String systemInstruction = """
                 너는 방탈출 테마 추천 전문가야.
-                사용자의 요구사항에 맞춰 1차로 엄선된 테마 목록이야. 반드시 3개의 테마를 추천해줘. 3개 미만으로 추천하지 마.
+                사용자의 요구사항에 맞춰 1차로 엄선된 테마 목록이야. 반드시 1개의 테마를 추천해줘. 반드시 정확히 1개만 추천해.
+                추천 메시지 작성 시 다음 규칙을 반드시 지켜:
+                - '유일한', '목록에 하나뿐', '이 테마만 존재' 같은 표현 절대 사용 금지
+                - 그냥 자연스럽게 테마를 추천하는 이유만 간결하게 설명해
+                - 예시: "'실험 섬'을 추천해 드립니다. 극한의 공포와 생존 스릴을 동시에 경험할 수 있는 테마입니다."
                 이 중에서 사용자의 의도에 가장 잘 맞는 테마를 선택해서 추천 사유와 함께 JSON으로 반환해줘.
                 응답 형식을 절대 벗어나지 마. 다른 텍스트는 절대 포함하지 마.
                 
@@ -133,13 +138,15 @@ public class AiRecommendService {
                     ? theme.getDescription().substring(0, 50) + "..."
                     : theme.getDescription();
 
-            sb.append(String.format("ID: %d | 제목: %s | 태그: %s | 난이도: %d | 공포도: %d | 플레이시간: %d분 | 설명: %s\n",
+            sb.append(String.format("ID: %d | 제목: %s | 태그: %s | 난이도: %d | 공포도: %d | 플레이시간: %d분 | 최소인원: %d | 최대인원: %d |설명: %s\n",
                     theme.getId(),
                     theme.getTitle(),
                     theme.getTags(),
                     theme.getDifficulty(),
                     theme.getHorrorLevel(),
                     theme.getPlayTime(),
+                    theme.getMinPeople(),
+                    theme.getMaxPeople(),
                     shortDesc
             ));
         }
