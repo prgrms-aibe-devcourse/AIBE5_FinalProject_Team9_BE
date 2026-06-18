@@ -58,6 +58,10 @@ public enum ErrorCode {
     MATE_POST_INVALID_OPEN_CHAT_URL(HttpStatus.BAD_REQUEST, "카카오 오픈채팅 URL 형식이 올바르지 않습니다."),
     MATE_POST_CANNOT_CLOSE(HttpStatus.BAD_REQUEST, "모집 중인 상태에서만 마감할 수 있습니다."),
 
+    // 메이트 댓글
+    MATE_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다."),
+    MATE_COMMENT_FORBIDDEN(HttpStatus.FORBIDDEN, "댓글 작성자만 수정/삭제할 수 있습니다."),
+
     // 메이트 참여
     MATE_PARTICIPANT_NOT_FOUND(HttpStatus.NOT_FOUND, "참여 정보를 찾을 수 없습니다."),
     MATE_PARTICIPANT_ALREADY_JOINED(HttpStatus.CONFLICT, "이미 참여 중인 모집글입니다."),
