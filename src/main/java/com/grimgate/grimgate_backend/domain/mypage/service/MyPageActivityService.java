@@ -45,9 +45,9 @@ public class MyPageActivityService {
         Member member = memberRepository.findByAccount_Id(accountId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        return reviewRepository.findByMemberId(member.getId()).stream()
+        return reviewRepository.findByMemberIdWithDetails(member.getId()).stream()
                 .map(review -> {
-                        List<String> imageUrls = reviewImageRepository.findByReview_Id(review.getId())
+                        List<String> imageUrls = review.getImages()
                                 .stream()
                                 .map(ReviewImage::getImageUrl)
                                 .toList();

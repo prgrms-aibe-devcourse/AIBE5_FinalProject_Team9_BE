@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -25,4 +27,12 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, JpaSpecif
     // 관리자 통계 — status별 후기 수 집계
     long countByStatus(String status);
 
+    //N+1로 fetch join 쿼리 하나로 다 긁어오기
+    @Query("SELECT DISTINCT r FROM Review r " +
+            "LEFT JOIN FETCH r.images " +
+            "LEFT JOIN FETCH r.theme " +
+            "LEFT JOIN FETCH r.reservation res " +
+            "LEFT JOIN FETCH res.timeSlot " +
+            "WHERE r.member.id = :memberId")
+    List<Review> findByMemberIdWithDetails(@Param("memberId") Long memberId);
 }
