@@ -96,6 +96,14 @@ public class MatePostController {
         return ResponseEntity.noContent().build();
     }
 
+    /** 3-8 모집글 수동 마감 (작성자 한정) — 로그인 필수 */
+    @PatchMapping("/{id}/close")
+    public ResponseEntity<Void> close(@PathVariable Long id) {
+        Long accountId = SecurityUtil.getCurrentAccountId();
+        matePostService.close(accountId, id);
+        return ResponseEntity.noContent().build();
+    }
+
     /**
      * 비로그인이 허용되는 엔드포인트에서 사용. 인증이 없으면 null 반환.
      */

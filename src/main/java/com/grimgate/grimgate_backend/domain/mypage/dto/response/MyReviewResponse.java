@@ -8,6 +8,7 @@ import java.util.List;
 
 @Getter
 public class MyReviewResponse {
+    private Long reviewId;
     private String themeTitle;
     private Long themeId;
     private String nickname;
@@ -19,11 +20,11 @@ public class MyReviewResponse {
     private Boolean spoiler;
     private LocalDateTime createdAt;
     private List<String> imageUrls;
-    private Long reviewId;
     private LocalDateTime visitedAt;
 
     @Builder
     public MyReviewResponse(
+            Long reviewId,
             String themeTitle,
             Long themeId,
             String nickname,
@@ -35,9 +36,9 @@ public class MyReviewResponse {
             Boolean spoiler,
             LocalDateTime createdAt,
             List<String> imageUrls,
-            Long reviewId,
             LocalDateTime visitedAt
     ) {
+        this.reviewId = reviewId;
         this.themeTitle = themeTitle;
         this.themeId = themeId;
         this.nickname = nickname;
@@ -49,7 +50,6 @@ public class MyReviewResponse {
         this.spoiler = spoiler;
         this.createdAt = createdAt;
         this.imageUrls = imageUrls;
-        this.reviewId = reviewId;
         this.visitedAt = visitedAt;
     }
 }

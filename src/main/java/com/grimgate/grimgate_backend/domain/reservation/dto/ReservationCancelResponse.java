@@ -10,9 +10,11 @@ public class ReservationCancelResponse {
 
     private final Long reservationId;
     private final String status;
+    private final Long paymentId;
 
-    public ReservationCancelResponse(Long reservationId, String status) {
+    public ReservationCancelResponse(Long reservationId, String status, Long paymentId) {
         this.reservationId = reservationId;
         this.status = status;
+        this.paymentId = paymentId;
     }
 }

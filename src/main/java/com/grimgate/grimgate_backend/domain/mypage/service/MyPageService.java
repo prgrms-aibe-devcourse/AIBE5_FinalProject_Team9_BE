@@ -163,7 +163,11 @@ public class MyPageService {
                 .titleName(titleName)
                 .gender(gender)
                 .age(age)
-                .profileCharacterImageUrl(member.getProfileCharacter().getImageUrl())
+                .profileCharacterImageUrl(
+                        member.getProfileCharacter() != null
+                                ? member.getProfileCharacter().getImageUrl()
+                                : null
+                )
                 .build();
     }
 }
