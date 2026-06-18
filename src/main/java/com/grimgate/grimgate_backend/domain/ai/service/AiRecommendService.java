@@ -82,10 +82,13 @@ public class AiRecommendService {
             themes = themeRepository.findByDifficultyLessThanEqual(2);
         } else if (userMessage.contains("스릴러")) {
             themes = themeRepository.findByTagsContaining("스릴러");
+            Collections.shuffle(themes);
         } else if (userMessage.contains("추리")) {
             themes = themeRepository.findByTagsContaining("추리");
+            Collections.shuffle(themes);
         } else if (userMessage.contains("미스터리")) {
             themes = themeRepository.findByTagsContaining("미스터리");
+            Collections.shuffle(themes);
         }  else if (userMessage.contains("둘이") || userMessage.contains("혼자")) {
             int people = userMessage.contains("혼자") ? 1 : 2;
             themes = themeRepository.findByMinPeopleLessThanEqual(people);
