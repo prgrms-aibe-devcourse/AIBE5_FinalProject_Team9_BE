@@ -395,7 +395,15 @@ public class AuthService {
         Long accountId = SecurityUtil.getCurrentAccountId();
         Account account = accountRepository.findByIdAndDeletedAtIsNull(accountId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
-        return MeResponse.from(account);
+
+        String storeName = null;
+        if (account.getRole() == Role.MANAGER) {
+            storeName = managerRepository.findByAccount_Id(accountId)
+                    .flatMap(manager -> branchRepository.findByManagerId(manager.getId()))
+                    .map(Branch::getStoreName)
+                    .orElse(null);
+        }
+        return MeResponse.from(account, storeName);
     }
 
     // 이메일 중복 확인
