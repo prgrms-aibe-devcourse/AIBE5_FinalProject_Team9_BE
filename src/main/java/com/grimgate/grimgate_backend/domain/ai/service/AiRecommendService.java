@@ -72,8 +72,9 @@ public class AiRecommendService {
 
         if (userMessage.contains("극한") || (userMessage.contains("무서운") && !userMessage.contains("못"))) {
             themes = themeRepository.findByHorrorLevel(5);
-        } else if (userMessage.contains("약한") || userMessage.contains("무섭지 않은") || userMessage.contains("가벼운")
-                || (userMessage.contains("무서운") && userMessage.contains("못"))) {
+        }else if (userMessage.contains("약한") || userMessage.contains("무섭지 않은") || userMessage.contains("가벼운")
+                || (userMessage.contains("무서운") && userMessage.contains("못"))
+                || userMessage.contains("못해") || userMessage.contains("쫄보")) {
             themes = themeRepository.findByHorrorLevelLessThanEqual(2);
         } else if (userMessage.contains("어려운") || userMessage.contains("난이도 높은") || userMessage.contains("고난이도")) {
             themes = themeRepository.findByDifficultyGreaterThanEqual(4);
