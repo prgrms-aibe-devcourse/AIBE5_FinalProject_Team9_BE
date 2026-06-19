@@ -1,8 +1,8 @@
 package com.grimgate.grimgate_backend.domain.mypage.dto.response;
 
-import com.grimgate.grimgate_backend.domain.review.dto.ReviewResponse;
 import lombok.Builder;
 import lombok.Getter;
+
 import java.time.LocalDateTime;
 import java.util.List;
 

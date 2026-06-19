@@ -152,7 +152,7 @@ public class MatePostService {
             Member current = memberRepository.findByAccount_Id(currentAccountId).orElse(null);
             if (current != null) {
                 currentMemberId = current.getId();
-                if ("my".equalsIgnoreCase(tab)) {
+                if ("my".equalsIgnoreCase(tab) || "mine".equalsIgnoreCase(tab)) {
                     authorFilter = currentMemberId;
                 }
             }
@@ -274,7 +274,7 @@ public class MatePostService {
         if ("deadline".equalsIgnoreCase(sort)) {
             return Sort.by(Sort.Direction.ASC, "deadline");
         }
-        if ("meeting".equalsIgnoreCase(sort)) {
+        if ("meeting".equalsIgnoreCase(sort) || "meetingTime".equalsIgnoreCase(sort)) {
             return Sort.by(Sort.Direction.ASC, "meetingTime");
         }
         return Sort.by(Sort.Direction.DESC, "createdAt");
