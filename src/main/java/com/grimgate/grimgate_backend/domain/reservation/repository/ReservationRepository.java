@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -18,6 +19,12 @@ import java.util.List;
  */
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
+
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.timeSlot ts WHERE r.status = :status AND r.createdAt < :timeLimit")
+    List<Reservation> findExpiredReservations(
+            @Param("status") ReservationStatus status,
+            @Param("timeLimit") LocalDateTime timeLimit
+    );
 
     // 마이페이지 - 회원 기준 예약 목록 조회
     @Query("SELECT r FROM Reservation r JOIN FETCH r.timeSlot ts JOIN FETCH ts.theme t JOIN FETCH t.branch WHERE r.member = :member")
