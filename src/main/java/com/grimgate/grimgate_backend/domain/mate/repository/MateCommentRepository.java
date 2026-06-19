@@ -14,20 +14,21 @@ import org.springframework.stereotype.Repository;
 public interface MateCommentRepository extends JpaRepository<MateComment, Long> {
 
     /**
-     * 특정 모집글의 삭제되지 않은 댓글 목록 조회.
+     * 특정 모집글의 전체 댓글 조회 (삭제 포함).
+     * 원댓글+대댓글 트리 조립 시 사용하며, 삭제 여부 필터링은 Service에서 처리한다.
      * N+1 방지를 위해 member, account 를 함께 fetch.
      */
     @EntityGraph(attributePaths = {"member", "member.account"})
     @Query("""
             select c from MateComment c
             where c.matePost.id = :postId
-              and c.deletedAt is null
             order by c.createdAt asc
             """)
-    List<MateComment> findActiveByMatePostId(@Param("postId") Long postId);
+    List<MateComment> findAllByMatePostId(@Param("postId") Long postId);
 
     /**
-     * 단건 조회 (수정/삭제 시 member 정보 함께 로드).
+     * 단건 조회 (수정/삭제/대댓글 작성 시 member 정보 함께 로드).
+     * deletedAt 필터 없음 — 삭제 여부 판단은 호출부에서 처리.
      */
     @EntityGraph(attributePaths = {"member", "member.account"})
     @Query("select c from MateComment c where c.id = :id")

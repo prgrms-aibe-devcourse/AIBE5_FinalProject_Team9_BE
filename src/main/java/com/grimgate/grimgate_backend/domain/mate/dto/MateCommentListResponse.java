@@ -14,12 +14,17 @@ import lombok.NoArgsConstructor;
 @Builder
 public class MateCommentListResponse {
 
+    /** 삭제되지 않은 원댓글 + 대댓글 전체 개수 */
     private int totalCount;
     private List<MateCommentResponse> comments;
 
-    public static MateCommentListResponse of(List<MateCommentResponse> comments) {
+    /**
+     * @param comments   원댓글 + replies 조립이 완료된 목록
+     * @param totalCount 삭제되지 않은 원댓글 + 대댓글 전체 합산
+     */
+    public static MateCommentListResponse of(List<MateCommentResponse> comments, int totalCount) {
         return MateCommentListResponse.builder()
-                .totalCount(comments.size())
+                .totalCount(totalCount)
                 .comments(comments)
                 .build();
     }

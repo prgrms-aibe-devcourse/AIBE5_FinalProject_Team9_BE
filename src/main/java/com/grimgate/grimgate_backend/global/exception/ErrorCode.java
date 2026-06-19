@@ -61,6 +61,10 @@ public enum ErrorCode {
     // 메이트 댓글
     MATE_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다."),
     MATE_COMMENT_FORBIDDEN(HttpStatus.FORBIDDEN, "댓글 작성자만 수정/삭제할 수 있습니다."),
+    MATE_COMMENT_PARENT_NOT_FOUND(HttpStatus.NOT_FOUND, "부모 댓글을 찾을 수 없습니다."),
+    MATE_REPLY_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "대댓글에는 대댓글을 작성할 수 없습니다."),
+    MATE_REPLY_POST_MISMATCH(HttpStatus.BAD_REQUEST, "다른 게시글의 댓글에는 대댓글을 작성할 수 없습니다."),
+    MATE_REPLY_TO_DELETED_COMMENT(HttpStatus.BAD_REQUEST, "삭제된 댓글에는 대댓글을 작성할 수 없습니다."),
 
     // 메이트 참여
     MATE_PARTICIPANT_NOT_FOUND(HttpStatus.NOT_FOUND, "참여 정보를 찾을 수 없습니다."),

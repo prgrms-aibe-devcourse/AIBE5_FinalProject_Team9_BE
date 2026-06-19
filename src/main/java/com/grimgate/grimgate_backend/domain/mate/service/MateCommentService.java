@@ -4,6 +4,7 @@ import com.grimgate.grimgate_backend.domain.mate.dto.MateCommentCreateRequest;
 import com.grimgate.grimgate_backend.domain.mate.dto.MateCommentListResponse;
 import com.grimgate.grimgate_backend.domain.mate.dto.MateCommentResponse;
 import com.grimgate.grimgate_backend.domain.mate.dto.MateCommentUpdateRequest;
+import com.grimgate.grimgate_backend.domain.mate.dto.MateReplyResponse;
 import com.grimgate.grimgate_backend.domain.mate.entity.MateComment;
 import com.grimgate.grimgate_backend.domain.mate.entity.MatePost;
 import com.grimgate.grimgate_backend.domain.mate.repository.MateCommentRepository;
@@ -13,26 +14,24 @@ import com.grimgate.grimgate_backend.domain.member.repository.MemberRepository;
 import com.grimgate.grimgate_backend.global.exception.CustomException;
 import com.grimgate.grimgate_backend.global.exception.ErrorCode;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 메이트 모집글 댓글 서비스.
+ * 메이트 모집글 댓글/대댓글 서비스.
  *
- * <p>인증 사용자 식별</p>
+ * <p>대댓글 정책</p>
  * <ul>
- *   <li>Controller 가 {@code SecurityUtil.getCurrentAccountId()} 로 accountId 를 추출하여 전달</li>
- *   <li>{@code resolveMember(accountId)} 로 Member 를 조회하여 소유권 검증에 활용</li>
+ *   <li>1-depth만 허용: 대댓글에는 대댓글을 달 수 없다.</li>
+ *   <li>삭제된 원댓글에는 대댓글을 달 수 없다.</li>
+ *   <li>원댓글이 삭제되어도 대댓글이 존재하면 마스킹 처리 후 목록에 포함한다.</li>
+ *   <li>삭제된 대댓글은 목록에서 제외한다.</li>
  * </ul>
  *
- * <p>댓글 정책</p>
- * <ul>
- *   <li>작성: 로그인 사용자만 가능</li>
- *   <li>수정/삭제: 댓글 작성자 본인만 가능</li>
- *   <li>삭제: Soft Delete (deletedAt 설정)</li>
- *   <li>조회: deletedAt 이 null 인 댓글만 반환</li>
- * </ul>
+ * <p>totalCount 기준: 삭제되지 않은 원댓글 + 대댓글 전체 합산</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -45,18 +44,42 @@ public class MateCommentService {
 
     /* ===== 조회 ===== */
 
-    /** 특정 모집글의 댓글 목록 조회 (삭제된 댓글 제외, 작성 순 정렬) */
+    /**
+     * 특정 모집글의 댓글 목록 조회.
+     * 원댓글 + replies 트리 구조로 반환하며, 삭제된 원댓글은 대댓글이 있는 경우 마스킹 처리.
+     */
     public MateCommentListResponse list(Long postId) {
-        getActivePost(postId); // 모집글 존재 여부 검증
-        List<MateCommentResponse> comments = commentRepository
-                .findActiveByMatePostId(postId)
-                .stream()
-                .map(MateCommentResponse::of)
+        getActivePost(postId);
+
+        List<MateComment> all = commentRepository.findAllByMatePostId(postId);
+
+        // 삭제되지 않은 대댓글을 부모 ID 기준으로 그루핑
+        Map<Long, List<MateComment>> repliesMap = all.stream()
+                .filter(c -> c.isReply() && !c.isDeleted())
+                .collect(Collectors.groupingBy(c -> c.getParent().getId()));
+
+        // 원댓글만 필터링 후 응답 조립
+        // 삭제된 원댓글은 대댓글이 있는 경우에만 마스킹하여 포함
+        List<MateCommentResponse> comments = all.stream()
+                .filter(c -> !c.isReply())
+                .filter(c -> !c.isDeleted() || repliesMap.containsKey(c.getId()))
+                .map(c -> {
+                    List<MateReplyResponse> replies = repliesMap
+                            .getOrDefault(c.getId(), List.of())
+                            .stream()
+                            .map(MateReplyResponse::of)
+                            .toList();
+                    return MateCommentResponse.of(c, replies);
+                })
                 .toList();
-        return MateCommentListResponse.of(comments);
+
+        // totalCount = 삭제되지 않은 원댓글 + 대댓글 전체 합산
+        int totalCount = (int) all.stream().filter(c -> !c.isDeleted()).count();
+
+        return MateCommentListResponse.of(comments, totalCount);
     }
 
-    /* ===== 작성 ===== */
+    /* ===== 원댓글 작성 ===== */
 
     @Transactional
     public MateCommentResponse create(Long accountId, Long postId, MateCommentCreateRequest req) {
@@ -73,13 +96,62 @@ public class MateCommentService {
         return MateCommentResponse.of(comment);
     }
 
+    /* ===== 대댓글 작성 ===== */
+
+    /**
+     * 대댓글 작성.
+     *
+     * <p>검증 순서</p>
+     * <ol>
+     *   <li>부모 댓글 존재 여부</li>
+     *   <li>부모 댓글이 대댓글인지 (1-depth 제한)</li>
+     *   <li>부모 댓글이 같은 게시글 소속인지</li>
+     *   <li>부모 댓글이 삭제되지 않았는지</li>
+     * </ol>
+     */
+    @Transactional
+    public MateReplyResponse createReply(Long accountId, Long postId, Long parentCommentId,
+            MateCommentCreateRequest req) {
+        Member author = resolveMember(accountId);
+        MatePost post = getActivePost(postId);
+
+        // 부모 댓글 조회 (삭제 포함 — 삭제 여부는 아래에서 별도 검증)
+        MateComment parent = commentRepository.findWithMemberById(parentCommentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MATE_COMMENT_PARENT_NOT_FOUND));
+
+        // 대댓글에 대댓글 작성 시도 차단 (1-depth 제한)
+        if (parent.isReply()) {
+            throw new CustomException(ErrorCode.MATE_REPLY_NOT_ALLOWED);
+        }
+
+        // 다른 게시글의 댓글에 대댓글 작성 시도 차단
+        if (!parent.getMatePost().getId().equals(postId)) {
+            throw new CustomException(ErrorCode.MATE_REPLY_POST_MISMATCH);
+        }
+
+        // 삭제된 댓글에 대댓글 작성 시도 차단
+        if (parent.isDeleted()) {
+            throw new CustomException(ErrorCode.MATE_REPLY_TO_DELETED_COMMENT);
+        }
+
+        MateComment reply = MateComment.builder()
+                .matePost(post)
+                .member(author)
+                .parent(parent)
+                .content(req.getContent())
+                .build();
+
+        commentRepository.save(reply);
+        return MateReplyResponse.of(reply);
+    }
+
     /* ===== 수정 ===== */
 
     @Transactional
     public MateCommentResponse update(Long accountId, Long postId, Long commentId,
             MateCommentUpdateRequest req) {
         Member author = resolveMember(accountId);
-        getActivePost(postId); // 모집글 존재 여부 검증
+        getActivePost(postId);
 
         MateComment comment = getActiveComment(commentId);
         if (!comment.isAuthor(author.getId())) {
@@ -96,7 +168,7 @@ public class MateCommentService {
     @Transactional
     public void delete(Long accountId, Long postId, Long commentId) {
         Member author = resolveMember(accountId);
-        getActivePost(postId); // 모집글 존재 여부 검증
+        getActivePost(postId);
 
         MateComment comment = getActiveComment(commentId);
         if (!comment.isAuthor(author.getId())) {

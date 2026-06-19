@@ -4,6 +4,7 @@ import com.grimgate.grimgate_backend.domain.mate.dto.MateCommentCreateRequest;
 import com.grimgate.grimgate_backend.domain.mate.dto.MateCommentListResponse;
 import com.grimgate.grimgate_backend.domain.mate.dto.MateCommentResponse;
 import com.grimgate.grimgate_backend.domain.mate.dto.MateCommentUpdateRequest;
+import com.grimgate.grimgate_backend.domain.mate.dto.MateReplyResponse;
 import com.grimgate.grimgate_backend.domain.mate.service.MateCommentService;
 import com.grimgate.grimgate_backend.global.security.SecurityUtil;
 import jakarta.validation.Valid;
@@ -70,5 +71,17 @@ public class MateCommentController {
         Long accountId = SecurityUtil.getCurrentAccountId();
         mateCommentService.delete(accountId, postId, commentId);
         return ResponseEntity.noContent().build();
+    }
+
+    /** 대댓글 작성 — 로그인 필수, 1-depth만 허용 */
+    @PostMapping("/{commentId}/replies")
+    public ResponseEntity<MateReplyResponse> createReply(
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @Valid @RequestBody MateCommentCreateRequest request
+    ) {
+        Long accountId = SecurityUtil.getCurrentAccountId();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(mateCommentService.createReply(accountId, postId, commentId, request));
     }
 }

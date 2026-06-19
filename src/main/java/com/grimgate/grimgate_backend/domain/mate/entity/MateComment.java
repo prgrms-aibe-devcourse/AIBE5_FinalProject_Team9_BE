@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
  *   id           bigint   PK
  *   mate_post_id bigint   NOT NULL  FK -> mate_post.id
  *   member_id    bigint   NOT NULL  FK -> member.id
+ *   parent_id    bigint   NULL      FK -> mate_comment.id (대댓글 시 부모 댓글 참조)
  *   content      text     NOT NULL
  *   created_at   datetime NOT NULL
  *   updated_at   datetime
@@ -62,6 +63,14 @@ public class MateComment extends BaseTimeEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    /**
+     * 부모 댓글 (대댓글인 경우에만 존재).
+     * null이면 원댓글, non-null이면 대댓글(1-depth).
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private MateComment parent;
+
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
@@ -74,6 +83,11 @@ public class MateComment extends BaseTimeEntity {
     /** 댓글 작성자 본인 여부 검증 */
     public boolean isAuthor(Long memberId) {
         return this.member != null && this.member.getId().equals(memberId);
+    }
+
+    /** 대댓글 여부 (parent가 있으면 대댓글) */
+    public boolean isReply() {
+        return this.parent != null;
     }
 
     /** 댓글 내용 수정 */
