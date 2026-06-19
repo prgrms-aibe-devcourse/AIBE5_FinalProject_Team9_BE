@@ -3,6 +3,8 @@ package com.grimgate.grimgate_backend.domain.owner.controller;
 import com.grimgate.grimgate_backend.domain.owner.dto.OwnerReservationSearchRequest;
 import com.grimgate.grimgate_backend.domain.owner.dto.OwnerReservationResponse;
 import com.grimgate.grimgate_backend.domain.owner.dto.OwnerReviewReportResponse;
+import com.grimgate.grimgate_backend.domain.owner.dto.ReservationResultRequest;
+import com.grimgate.grimgate_backend.domain.owner.dto.ReservationResultResponse;
 import com.grimgate.grimgate_backend.domain.owner.dto.ReviewReportHideRequest;
 
 import com.grimgate.grimgate_backend.domain.owner.service.OwnerService;
@@ -118,6 +120,15 @@ public class OwnerController {
             @RequestBody @Valid ReviewReportHideRequest request) {
         reviewReportService.requestHideByOwner(reportId, request);
         return ResponseEntity.ok().build();
+    }
+
+    // 방탈출 결과 기록
+    @PostMapping("/reservations/{reservationId}/result")
+    public ResponseEntity<ApiResponse<ReservationResultResponse>> recordReservationResult(
+            @PathVariable Long reservationId,
+            @RequestBody @Valid ReservationResultRequest request) {
+        ReservationResultResponse response = ownerService.recordReservationResult(reservationId, request);
+        return ResponseEntity.ok(ApiResponse.success("방탈출 결과가 기록되었습니다.", response));
     }
 
     // 예약 통계 조회
