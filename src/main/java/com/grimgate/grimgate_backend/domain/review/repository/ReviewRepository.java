@@ -16,6 +16,9 @@ import java.util.List;
 public interface ReviewRepository extends JpaRepository<Review, Long>, JpaSpecificationExecutor<Review> {
     List<Review> findByThemeId(Long themeId, Pageable pageable);
     List<Review> findByThemeId(Long themeId);
+    List<Review> findByThemeIdAndStatus(Long themeId, String status, Pageable pageable);
+    List<Review> findByThemeIdAndStatus(Long themeId, String status);
+    long countByThemeIdAndStatus(Long themeId, String status);
     // 내가 쓴 후기 목록(마이페이지)
     List<Review> findByMemberId(Long memberId);
     // 예약에 이미 후기 있는지 확인 (중복 방지)

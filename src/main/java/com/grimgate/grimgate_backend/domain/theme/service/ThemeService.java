@@ -8,6 +8,7 @@ import com.grimgate.grimgate_backend.domain.theme.entity.Branch;
 import com.grimgate.grimgate_backend.domain.theme.entity.Theme;
 import com.grimgate.grimgate_backend.domain.theme.repository.BranchRepository;
 import com.grimgate.grimgate_backend.domain.theme.repository.ThemeRepository;
+import com.grimgate.grimgate_backend.domain.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +39,7 @@ public class ThemeService {
     private final ThemeRepository themeRepository;
     private final BranchRepository branchRepository;
     private final TimeSlotRepository timeSlotRepository;
+    private final ReviewRepository reviewRepository;
 
     public List<ThemeResponse> getThemes(
             ThemeSearchCondition condition
@@ -89,7 +91,7 @@ public class ThemeService {
                         theme.getDifficulty(),
                         theme.getHorrorLevel(),
                         theme.getRating(),
-                        theme.getReviewCount(),
+                        (int) reviewRepository.countByThemeIdAndStatus(theme.getId(), "ACTIVE"),
                         theme.getMinPeople(),
                         theme.getMaxPeople(),
                         theme.getTags(),

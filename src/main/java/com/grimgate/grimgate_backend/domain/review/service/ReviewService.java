@@ -38,7 +38,7 @@ public class ReviewService {
                 .orElseThrow(() -> new EntityNotFoundException("테마를 찾을 수 없습니다."));
 
         // 2. 별점 분포 계산 (전체 후기 기준)
-        List<Review> allReviews = reviewRepository.findByThemeId(themeId);
+        List<Review> allReviews = reviewRepository.findByThemeIdAndStatus(themeId, "ACTIVE");
         Map<Integer, Integer> distribution = new LinkedHashMap<>();
         for (int i = 5; i >= 1; i--) {
             int star = i;
@@ -51,7 +51,7 @@ public class ReviewService {
 
         // 3. 정렬 + 페이지네이션 적용한 후기 목록
         Pageable pageable = buildPageable(page, limit, sort);
-        List<ReviewResponse> reviews = reviewRepository.findByThemeId(themeId, pageable)
+        List<ReviewResponse> reviews = reviewRepository.findByThemeIdAndStatus(themeId, "ACTIVE", pageable)
                 .stream()
                 .map(review -> ReviewResponse.builder()
                         .id(review.getId())
@@ -71,7 +71,7 @@ public class ReviewService {
 
         return new ReviewTabResponse(
                 rating,
-                theme.getReviewCount(),
+                allReviews.size(),
                 theme.getMinPeople(),
                 theme.getMaxPeople(),
                 theme.getPlayTime(),
