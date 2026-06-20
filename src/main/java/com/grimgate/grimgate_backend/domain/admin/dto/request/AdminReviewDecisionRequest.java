@@ -15,6 +15,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AdminReviewDecisionRequest {
 
-    @NotBlank(message = "처리 사유는 필수입니다.")
     private String adminReason;
 }
