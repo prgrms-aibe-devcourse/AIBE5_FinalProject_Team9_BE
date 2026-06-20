@@ -54,6 +54,7 @@ public class ReviewService {
         List<ReviewResponse> reviews = reviewRepository.findByThemeId(themeId, pageable)
                 .stream()
                 .map(review -> ReviewResponse.builder()
+                        .id(review.getId())
                         .nickname(review.getMember().getAccount().getNickname())
                         .rating(review.getRating())
                         .horrorRating(review.getHorrorRating())

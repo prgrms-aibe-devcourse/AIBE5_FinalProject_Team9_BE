@@ -10,6 +10,7 @@ import java.util.List;
 @Getter
 @Builder
 public class ReviewResponse {
+    private Long id;
     private String nickname;
     private Integer rating;
     private Integer horrorRating;
@@ -22,6 +23,7 @@ public class ReviewResponse {
 
 
     public ReviewResponse(
+            Long id,
             String nickname,
             Integer rating,
             Integer horrorRating,
@@ -32,6 +34,7 @@ public class ReviewResponse {
             LocalDateTime createdAt,
             List<String> imageUrls
     ) {
+        this.id = id;
         this.nickname = nickname;
         this.rating = rating;
         this.horrorRating = horrorRating;
