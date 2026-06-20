@@ -17,9 +17,14 @@ public class MeResponse {
     private boolean ageVisible;
     private boolean genderVisible;
     private boolean emailVisible;
+    private String storeName;
+
+    public static MeResponse from(Account account) {
+        return from(account, null);
+    }
 
     // Account 엔티티로부터 MeResponse 생성
-    public static MeResponse from(Account account) {
+    public static MeResponse from(Account account, String storeName) {
         return MeResponse.builder()
                 .id(account.getId())
                 .email(account.getEmail())
@@ -30,6 +35,7 @@ public class MeResponse {
                 .ageVisible(account.isAgeVisible())
                 .genderVisible(account.isGenderVisible())
                 .emailVisible(account.isEmailVisible())
+                .storeName(storeName)
                 .build();
     }
 }
