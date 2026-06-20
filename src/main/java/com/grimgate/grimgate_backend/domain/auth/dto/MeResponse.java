@@ -19,6 +19,10 @@ public class MeResponse {
     private boolean emailVisible;
     private String storeName;
 
+    public static MeResponse from(Account account) {
+        return from(account, null);
+    }
+
     // Account 엔티티로부터 MeResponse 생성
     public static MeResponse from(Account account, String storeName) {
         return MeResponse.builder()
