@@ -37,3 +37,14 @@ jwt:
   secret: ${JWT_SECRET:dummySecretKeyLocalTestAtLeastThirtyTwoBytesLong}
   access-token-validity-ms: ${JWT_ACCESS_TOKEN_VALIDITY_MS:3600000}
   refresh-token-validity-ms: ${JWT_REFRESH_TOKEN_VALIDITY_MS:86400000}
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
