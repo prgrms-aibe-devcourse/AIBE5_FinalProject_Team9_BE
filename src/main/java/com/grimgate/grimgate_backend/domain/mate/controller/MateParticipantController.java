@@ -36,7 +36,7 @@ public class MateParticipantController {
 
     /** 참가 신청 (MP-001) - 201 + openChatUrl 포함 응답 */
     @PostMapping("/{postId}/join")
-    public ResponseEntity<MateParticipantResponse> join(@PathVariable Long postId) {
+    public ResponseEntity<MateParticipantResponse> join(@PathVariable("postId") Long postId) {
         Long accountId = SecurityUtil.getCurrentAccountId();
         MateParticipantResponse res = mateParticipantService.join(accountId, postId);
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
@@ -44,15 +44,15 @@ public class MateParticipantController {
 
     /** 본인 참가 취소 (MP-002) - 200 + 변경 정보 응답 */
     @DeleteMapping("/{postId}/join")
-    public ResponseEntity<MateParticipantResponse> cancel(@PathVariable Long postId) {
+    public ResponseEntity<MateParticipantResponse> cancel(@PathVariable("postId") Long postId) {
         Long accountId = SecurityUtil.getCurrentAccountId();
         return ResponseEntity.ok(mateParticipantService.cancel(accountId, postId));
     }
 
     /** 작성자가 참여자 강퇴 (내부 확장 기능) */
     @DeleteMapping("/{postId}/participants/{memberId}")
-    public ResponseEntity<Void> kick(@PathVariable Long postId,
-                                     @PathVariable Long memberId) {
+    public ResponseEntity<Void> kick(@PathVariable("postId") Long postId,
+                                     @PathVariable("memberId") Long memberId) {
         Long accountId = SecurityUtil.getCurrentAccountId();
         mateParticipantService.kick(accountId, postId, memberId);
         return ResponseEntity.noContent().build();
@@ -60,7 +60,7 @@ public class MateParticipantController {
 
     /** 참여자 목록 조회 (MP-003) - 작성자만 */
     @GetMapping("/{postId}/participants")
-    public ResponseEntity<MateParticipantListResponse> list(@PathVariable Long postId) {
+    public ResponseEntity<MateParticipantListResponse> list(@PathVariable("postId") Long postId) {
         Long accountId = SecurityUtil.getCurrentAccountId();
         return ResponseEntity.ok(mateParticipantService.listParticipants(accountId, postId));
     }

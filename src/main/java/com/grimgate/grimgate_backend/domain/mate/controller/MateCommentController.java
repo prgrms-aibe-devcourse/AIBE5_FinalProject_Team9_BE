@@ -36,14 +36,14 @@ public class MateCommentController {
 
     /** 댓글 목록 조회 — 비로그인 허용 */
     @GetMapping
-    public ResponseEntity<MateCommentListResponse> list(@PathVariable Long postId) {
+    public ResponseEntity<MateCommentListResponse> list(@PathVariable("postId") Long postId) {
         return ResponseEntity.ok(mateCommentService.list(postId));
     }
 
     /** 댓글 작성 — 로그인 필수 */
     @PostMapping
     public ResponseEntity<MateCommentResponse> create(
-            @PathVariable Long postId,
+            @PathVariable("postId") Long postId,
             @Valid @RequestBody MateCommentCreateRequest request
     ) {
         Long accountId = SecurityUtil.getCurrentAccountId();
@@ -54,8 +54,8 @@ public class MateCommentController {
     /** 댓글 수정 — 댓글 작성자 본인만 가능 */
     @PatchMapping("/{commentId}")
     public ResponseEntity<MateCommentResponse> update(
-            @PathVariable Long postId,
-            @PathVariable Long commentId,
+            @PathVariable("postId") Long postId,
+            @PathVariable("commentId") Long commentId,
             @Valid @RequestBody MateCommentUpdateRequest request
     ) {
         Long accountId = SecurityUtil.getCurrentAccountId();
@@ -65,8 +65,8 @@ public class MateCommentController {
     /** 댓글 삭제 (soft delete) — 댓글 작성자 본인만 가능 */
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> delete(
-            @PathVariable Long postId,
-            @PathVariable Long commentId
+            @PathVariable("postId") Long postId,
+            @PathVariable("commentId") Long commentId
     ) {
         Long accountId = SecurityUtil.getCurrentAccountId();
         mateCommentService.delete(accountId, postId, commentId);
@@ -76,8 +76,8 @@ public class MateCommentController {
     /** 대댓글 작성 — 로그인 필수, 1-depth만 허용 */
     @PostMapping("/{commentId}/replies")
     public ResponseEntity<MateReplyResponse> createReply(
-            @PathVariable Long postId,
-            @PathVariable Long commentId,
+            @PathVariable("postId") Long postId,
+            @PathVariable("commentId") Long commentId,
             @Valid @RequestBody MateCommentCreateRequest request
     ) {
         Long accountId = SecurityUtil.getCurrentAccountId();
