@@ -45,4 +45,5 @@ jobs:
             source /home/ubuntu/app/.env
             nohup java -jar /home/ubuntu/app/backend/*.jar \
               --spring.profiles.active=prod \
+              --spring.config.additional-location=/home/ubuntu/app/ \
               > /home/ubuntu/app/backend/app.log 2>&1 &
