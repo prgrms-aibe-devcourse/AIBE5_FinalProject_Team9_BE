@@ -72,4 +72,11 @@ public class Reservation extends BaseTimeEntity {
     public void cancel() {
         this.status = ReservationStatus.CANCELLED;
     }
+
+    // 방탈출 결과를 기록하고 상태를 COMPLETED로 변경합니다.
+    public void recordResult(Boolean isCleared, LocalTime clearTime) {
+        this.isCleared = isCleared;
+        this.clearTime = clearTime;
+        this.status = ReservationStatus.COMPLETED;
+    }
 }

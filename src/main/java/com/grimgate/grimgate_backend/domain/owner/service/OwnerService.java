@@ -8,7 +8,15 @@ import com.grimgate.grimgate_backend.domain.review.repository.ReviewRepository;
 import com.grimgate.grimgate_backend.domain.owner.dto.OwnerReservationResponse;
 import com.grimgate.grimgate_backend.domain.owner.dto.OwnerReservationSearchRequest;
 import com.grimgate.grimgate_backend.domain.owner.dto.OwnerReservationStatsResponse;
+import com.grimgate.grimgate_backend.domain.owner.dto.ReservationResultRequest;
+import com.grimgate.grimgate_backend.domain.owner.dto.ReservationResultResponse;
+import com.grimgate.grimgate_backend.domain.member.entity.Member;
+import com.grimgate.grimgate_backend.domain.member.repository.MemberRepository;
+import com.grimgate.grimgate_backend.domain.reservation.entity.Reservation;
+import com.grimgate.grimgate_backend.domain.reservation.entity.ReservationStatus;
 import com.grimgate.grimgate_backend.domain.reservation.repository.ReservationRepository;
+import com.grimgate.grimgate_backend.domain.achievement.service.AchievementService;
+import com.grimgate.grimgate_backend.domain.title.service.TitleService;
 import com.grimgate.grimgate_backend.domain.reservation.repository.ReservationStatsProjection;
 import com.grimgate.grimgate_backend.domain.theme.dto.ThemeCreateRequest;
 import com.grimgate.grimgate_backend.domain.theme.dto.ThemeCreateResponse;
@@ -31,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,10 +49,13 @@ public class OwnerService {
     private final ThemeRepository themeRepository;
     private final BranchRepository branchRepository;
     private final ManagerRepository managerRepository;
+    private final MemberRepository memberRepository;
     private final ReservationRepository reservationRepository;
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final S3Uploader s3Uploader;
+    private final TitleService titleService;
+    private final AchievementService achievementService;
 
     // 테마 등록
     @Transactional
@@ -180,6 +192,61 @@ public class OwnerService {
                 request.getStatus(),
                 pageable
         ).map(OwnerReservationResponse::from);
+    }
+
+    // 방탈출 결과 기록
+    @Transactional
+    public ReservationResultResponse recordReservationResult(Long reservationId, ReservationResultRequest request) {
+        Long accountId = SecurityUtil.getCurrentAccountId();
+        Manager manager = managerRepository.findByAccount_Id(accountId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MANAGER_NOT_FOUND));
+        Branch branch = branchRepository.findByManagerId(manager.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.BRANCH_NOT_FOUND));
+
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        // 본인 지점 예약인지 검증
+        if (!reservation.getTimeSlot().getTheme().getBranch().getId().equals(branch.getId())) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        // COMPLETED면 이미 결과 입력 완료
+        if (reservation.getStatus() == ReservationStatus.COMPLETED) {
+            throw new CustomException(ErrorCode.RESERVATION_ALREADY_COMPLETED);
+        }
+
+        // CONFIRMED 상태만 결과 입력 가능
+        if (reservation.getStatus() != ReservationStatus.CONFIRMED) {
+            throw new CustomException(ErrorCode.RESERVATION_NOT_CONFIRMED);
+        }
+
+        // 클리어 성공 시 clearTime 필수
+        if (Boolean.TRUE.equals(request.getIsCleared()) && request.getClearTime() == null) {
+            throw new CustomException(ErrorCode.CLEAR_TIME_REQUIRED);
+        }
+
+        // 실패 시 clearTime null 저장
+        LocalTime clearTime = Boolean.TRUE.equals(request.getIsCleared()) ? request.getClearTime() : null;
+        reservation.recordResult(request.getIsCleared(), clearTime);
+
+        // 결과 기록 후 해당 회원의 칭호 갱신
+        Member member = reservation.getMember();
+        List<Reservation> memberReservations = reservationRepository.findByMemberWithTimeSlot(member);
+        long totalPlayCount = titleService.calcTotalPlayCount(memberReservations);
+        long clearedCount = titleService.calcClearedCount(memberReservations);
+        double successRate = titleService.calcSuccessRate(totalPlayCount, clearedCount);
+
+        titleService.findMatchingTitleId((int) totalPlayCount, (int) clearedCount, successRate)
+                .ifPresent(member::updateTitleId);
+
+        // 칭호 갱신 후 기본 업적 지급 (TOTAL_PLAY_COUNT, CLEAR_TIME_UNDER)
+        long completedCount = memberReservations.stream()
+                .filter(r -> r.getStatus() == ReservationStatus.COMPLETED)
+                .count();
+        achievementService.grantResultAchievements(member, completedCount, request.getIsCleared(), clearTime);
+
+        return ReservationResultResponse.from(reservation);
     }
 
     // 사장님 예약 요약 통계 조회
