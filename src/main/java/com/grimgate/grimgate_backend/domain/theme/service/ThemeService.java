@@ -87,6 +87,7 @@ public class ThemeService {
                         theme.getBranch().getId(),
                         theme.getThumbnailUrl(),
                         theme.getBranch().getBranchName(),
+                        theme.getBranch().getRegion(),
                         theme.getTitle(),
                         theme.getDifficulty(),
                         theme.getHorrorLevel(),
