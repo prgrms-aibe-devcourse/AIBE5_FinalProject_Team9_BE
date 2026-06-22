@@ -43,14 +43,14 @@ public class MatePostController {
     /** 3-1 모집글 목록 조회 — 비로그인 허용, 로그인 시 '내글' 탭 사용 가능 */
     @GetMapping
     public ResponseEntity<MatePostListResponse> list(
-            @RequestParam(required = false, defaultValue = "all") String tab,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) Long themeId,
-            @RequestParam(required = false) String experienceLevel,
-            @RequestParam(required = false, defaultValue = "latest") String sort,
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "10") int size
+            @RequestParam(value = "tab", required = false, defaultValue = "all") String tab,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "themeId", required = false) Long themeId,
+            @RequestParam(value = "experienceLevel", required = false) String experienceLevel,
+            @RequestParam(value = "sort", required = false, defaultValue = "latest") String sort,
+            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") int size
     ) {
         Long currentAccountId = getOptionalAccountId();
         return ResponseEntity.ok(matePostService.list(
@@ -73,7 +73,7 @@ public class MatePostController {
 
     /** 3-3 모집글 상세 — 비로그인 허용, 작성자에게는 openChatUrl 노출 */
     @GetMapping("/{id}")
-    public ResponseEntity<MatePostResponse> detail(@PathVariable Long id) {
+    public ResponseEntity<MatePostResponse> detail(@PathVariable("id") Long id) {
         Long currentAccountId = getOptionalAccountId();
         return ResponseEntity.ok(matePostService.getDetail(id, currentAccountId));
     }
@@ -81,7 +81,7 @@ public class MatePostController {
     /** 3-4 모집글 수정 (작성자 한정) — 로그인 필수 */
     @PatchMapping("/{id}")
     public ResponseEntity<MatePostResponse> update(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody MatePostUpdateRequest request
     ) {
         Long accountId = SecurityUtil.getCurrentAccountId();
@@ -90,7 +90,7 @@ public class MatePostController {
 
     /** 3-5 모집글 삭제 (soft delete) — 로그인 필수 */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
         Long accountId = SecurityUtil.getCurrentAccountId();
         matePostService.softDelete(accountId, id);
         return ResponseEntity.noContent().build();
@@ -98,7 +98,7 @@ public class MatePostController {
 
     /** 3-8 모집글 수동 마감 (작성자 한정) — 로그인 필수 */
     @PatchMapping("/{id}/close")
-    public ResponseEntity<Void> close(@PathVariable Long id) {
+    public ResponseEntity<Void> close(@PathVariable("id") Long id) {
         Long accountId = SecurityUtil.getCurrentAccountId();
         matePostService.close(accountId, id);
         return ResponseEntity.noContent().build();

@@ -38,12 +38,12 @@ public class ThemeController {
     }
 
     @GetMapping("/{id}")
-    public ThemeDetailResponse getThemeDetail(@PathVariable Long id) {
+    public ThemeDetailResponse getThemeDetail(@PathVariable("id") Long id) {
         return themeService.getThemeDetail(id);
     }
 
     @GetMapping("{themeId}/branches")
-    public BranchDetailResponse getBranches(@PathVariable Long themeId) {
+    public BranchDetailResponse getBranches(@PathVariable("themeId") Long themeId) {
         return themeService.getBranches(themeId);
     }
 
