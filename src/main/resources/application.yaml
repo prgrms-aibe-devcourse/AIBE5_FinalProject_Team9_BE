@@ -6,6 +6,11 @@ spring:
     active: local
     include: secret
 
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/grimgate}
+    username: ${DB_USERNAME:grimgate}
+    password: ${DB_PASSWORD:}
+
   servlet:
     multipart:
       max-file-size: 10MB
