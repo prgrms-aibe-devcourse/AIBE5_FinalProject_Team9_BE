@@ -21,4 +21,7 @@ VALUES
 (4, '단서 사냥꾼',   '방탈출을 15회 완료했습니다.',          'TOTAL_PLAY_COUNT', 15, NOW(), NOW()),
 (5, '방탈출 지배자', '방탈출을 30회 완료했습니다.',          'TOTAL_PLAY_COUNT', 30, NOW(), NOW()),
 (6, '스피드 러너',   '40분 이내로 방탈출을 클리어했습니다.', 'CLEAR_TIME_UNDER', 40, NOW(), NOW());
+
+INSERT IGNORE INTO achievement (id, name, description, condition_type, condition_value, created_at, updated_at)
+VALUES (7, '미니게임의 신', '미니게임을 클리어했습니다.', 'MINIGAME_CLEAR', 1, NOW(), NOW());
        
