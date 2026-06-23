@@ -11,7 +11,7 @@ import lombok.Getter;
 public class MinigameClearResponse {
 
     @Schema(description = "업적 신규 획득 여부", example = "true")
-    private boolean isNewAcquired;
+    private boolean newAcquired;
 
     @Schema(description = "획득한 미니게임 업적 정보")
     private AchievementInfo achievement;

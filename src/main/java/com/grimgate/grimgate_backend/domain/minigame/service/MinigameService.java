@@ -1,6 +1,7 @@
 package com.grimgate.grimgate_backend.domain.minigame.service;
 
 import com.grimgate.grimgate_backend.domain.achievement.service.AchievementService;
+import com.grimgate.grimgate_backend.domain.achievement.dto.AchievementGrantResult;
 import com.grimgate.grimgate_backend.domain.member.entity.Member;
 import com.grimgate.grimgate_backend.domain.member.repository.MemberRepository;
 import com.grimgate.grimgate_backend.domain.minigame.dto.MinigameClearResponse;
@@ -23,6 +24,11 @@ public class MinigameService {
         Member member = memberRepository.findByAccount_Id(accountId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        return achievementService.grantMinigameClearAchievement(member);
+        AchievementGrantResult result = achievementService.grantMinigameClearAchievement(member);
+
+        return MinigameClearResponse.builder()
+                .newAcquired(result.newAcquired())
+                .achievement(MinigameClearResponse.AchievementInfo.from(result.achievement()))
+                .build();
     }
 }
