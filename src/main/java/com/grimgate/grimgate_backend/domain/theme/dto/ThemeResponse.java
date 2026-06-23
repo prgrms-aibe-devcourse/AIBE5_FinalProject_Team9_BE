@@ -12,6 +12,7 @@ public class ThemeResponse {
     private Long branchId;
     private String thumbnailUrl;
     private String branchName;
+    private String region;
     private String title;
     private Integer difficulty;
     private Integer horrorLevel;
@@ -32,6 +33,7 @@ public class ThemeResponse {
                 theme.getBranch().getId(),
                 theme.getThumbnailUrl(),
                 theme.getBranch().getBranchName(), // Branch에서 name 꺼내기
+                theme.getBranch().getRegion(),
                 theme.getTitle(),
                 theme.getDifficulty(),
                 theme.getHorrorLevel(),
