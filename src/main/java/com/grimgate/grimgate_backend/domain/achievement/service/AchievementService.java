@@ -8,6 +8,7 @@ import com.grimgate.grimgate_backend.domain.achievement.repository.MemberAchieve
 import com.grimgate.grimgate_backend.domain.member.entity.Member;
 import com.grimgate.grimgate_backend.domain.member.repository.MemberRepository;
 import com.grimgate.grimgate_backend.domain.mypage.dto.response.MyPageAchievementResponse;
+import com.grimgate.grimgate_backend.domain.minigame.dto.MinigameClearResponse;
 import com.grimgate.grimgate_backend.global.exception.CustomException;
 import com.grimgate.grimgate_backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -110,5 +111,48 @@ public class AchievementService {
                                     .build()
                     ));
         }
+    }
+
+    /**
+     * 미니게임 클리어 시 업적 지급 여부를 검사하고 지급한다.
+     */
+    @Transactional
+    public MinigameClearResponse grantMinigameClearAchievement(Member member) {
+        Set<Long> acquiredIds = memberAchievementRepository.findByMember_Id(member.getId())
+                .stream()
+                .map(ma -> ma.getAchievement().getId())
+                .collect(Collectors.toSet());
+
+        List<Achievement> minigameAchievements = achievementRepository.findByConditionType(AchievementConditionType.MINIGAME_CLEAR);
+
+        if (minigameAchievements.isEmpty()) {
+            return MinigameClearResponse.builder()
+                    .isNewAcquired(false)
+                    .achievement(null)
+                    .build();
+        }
+
+        Achievement targetAchievement = minigameAchievements.get(0);
+
+        if (acquiredIds.contains(targetAchievement.getId())) {
+            return MinigameClearResponse.builder()
+                    .isNewAcquired(false)
+                    .achievement(MinigameClearResponse.AchievementInfo.from(targetAchievement))
+                    .build();
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        memberAchievementRepository.save(
+                MemberAchievement.builder()
+                        .member(member)
+                        .achievement(targetAchievement)
+                        .acquiredAt(now)
+                        .build()
+        );
+
+        return MinigameClearResponse.builder()
+                .isNewAcquired(true)
+                .achievement(MinigameClearResponse.AchievementInfo.from(targetAchievement))
+                .build();
     }
 }

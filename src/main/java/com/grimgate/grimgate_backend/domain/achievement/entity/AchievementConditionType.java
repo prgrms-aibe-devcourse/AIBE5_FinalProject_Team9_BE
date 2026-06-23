@@ -18,5 +18,8 @@ public enum AchievementConditionType {
     MATE_PARTICIPATE_COUNT,
 
     // 같은 메이트와 함께한 횟수 (mate_participant 기준)
-    SAME_MATE_COUNT
+    SAME_MATE_COUNT,
+
+    // 미니게임 클리어
+    MINIGAME_CLEAR
 }
