@@ -11,6 +11,7 @@ import com.grimgate.grimgate_backend.domain.review.dto.ReviewUpdateRequest;
 import com.grimgate.grimgate_backend.domain.review.entity.Review;
 import com.grimgate.grimgate_backend.domain.review.entity.ReviewImage;
 import com.grimgate.grimgate_backend.domain.review.repository.ReviewImageRepository;
+import com.grimgate.grimgate_backend.domain.review.repository.ReviewReportRepository;
 import com.grimgate.grimgate_backend.domain.review.repository.ReviewRepository;
 import com.grimgate.grimgate_backend.domain.theme.entity.Theme;
 import com.grimgate.grimgate_backend.domain.theme.repository.ThemeRepository;
@@ -38,6 +39,7 @@ public class MyPageActivityService {
     private final ThemeRepository themeRepository;
     private final MatePostRepository matePostRepository;
     private final S3Uploader s3Uploader;
+    private final ReviewReportRepository reviewReportRepository;
 
     // 내 후기 조회
     public List<MyReviewResponse> getMyReviews(){
@@ -167,6 +169,11 @@ public class MyPageActivityService {
         // 본인 확인
         if (!review.getMember().getId().equals(member.getId())) {
             throw new CustomException(ErrorCode.REVIEW_NOT_OWNER);
+        }
+
+        // 신고된 후기 삭제 불가 체크
+        if (reviewReportRepository.existsByReviewId(reviewId)) {
+            throw new CustomException(ErrorCode.REPORTED_REVIEW_CANNOT_DELETE);
         }
 
         // 이미지 먼저 삭제

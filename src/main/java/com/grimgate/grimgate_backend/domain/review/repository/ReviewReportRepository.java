@@ -25,4 +25,6 @@ public interface ReviewReportRepository extends JpaRepository<ReviewReport, Long
     Page<ReviewReport> findByReview_Theme_Branch_ManagerId(Long managerId, Pageable pageable);
 
     Page<ReviewReport> findByStatusIn(List<ReviewReportStatus> statuses, Pageable pageable);
+
+    boolean existsByReviewId(Long reviewId);
 }

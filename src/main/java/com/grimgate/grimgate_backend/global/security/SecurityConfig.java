@@ -44,7 +44,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configure(http))
 
                 .authorizeHttpRequests(auth -> auth
-                        
+
 
                         // Auth - 인증 불필요 엔드포인트
                         .requestMatchers(HttpMethod.POST,
