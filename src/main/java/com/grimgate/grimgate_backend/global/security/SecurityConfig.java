@@ -44,12 +44,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configure(http))
 
                 .authorizeHttpRequests(auth -> auth
-
-                        // Swagger UI (인증 불필요)
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**"
-                        ).permitAll()
+                        
 
                         // Auth - 인증 불필요 엔드포인트
                         .requestMatchers(HttpMethod.POST,
