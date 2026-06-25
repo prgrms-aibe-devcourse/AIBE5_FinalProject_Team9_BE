@@ -102,12 +102,12 @@ public class AiRecommendService {
                 themes = themeRepository.findByMinPeopleLessThanEqual(people);
             } else {
                 //조건 없으면 랜덤 1개
-                themes = themeRepository.findRandom(1);
+                themes = themeRepository.findRandom(3);
             }
         }
 
         // 최대 개만 Gemini에 전달
-        return themes.stream().limit(1).toList();
+        return themes.stream().limit(3).toList();
     }
 
     private String extractLastUserMessage(AiRecommendRequest request) {
@@ -121,7 +121,7 @@ public class AiRecommendService {
     private String buildSystemPrompt(List<Theme> filteredThemes) {
         String systemInstruction = """
                 너는 방탈출 테마 추천 전문가야.
-                사용자의 요구사항에 맞춰 1차로 엄선된 테마 목록이야. 반드시 1개의 테마를 추천해줘. 반드시 정확히 1개만 추천해.
+                사용자의 요구사항에 맞춰 1차로 엄선된 테마 목록이야. 반드시 1개의 테마를 추천해줘. 반드시 정확히 3개만 추천해.
                 추천 메시지 작성 시 다음 규칙을 반드시 지켜:
                 - '유일한', '목록에 하나뿐', '이 테마만 존재' 같은 표현 절대 사용 금지
                 - 그냥 자연스럽게 테마를 추천하는 이유만 간결하게 설명해
@@ -129,7 +129,7 @@ public class AiRecommendService {
                 이 중에서 사용자의 의도에 가장 잘 맞는 테마를 선택해서 추천 사유와 함께 JSON으로 반환해줘.
                 응답 형식을 절대 벗어나지 마. 다른 텍스트는 절대 포함하지 마.
                 
-                추천할 경우: {"type": "recommendation", "theme_ids": [1], "message": "사용자 맞춤 추천 이유"}
+                추천할 경우: {"type": "recommendation", "theme_ids": [1],[2],[3] "message": "사용자 맞춤 추천 이유"}
                 추천 불가 시: {"type": "message", "message": "부드러운 대화 답변"}
                 
                 엄선된 후보 테마 목록:
