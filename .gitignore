@@ -40,6 +40,7 @@ out/
 src/main/resources/application-local.yaml
 src/main/resources/application-prod.yaml
 
+
 # secret
 .env
 src/main/resources/application-secret.yaml
@@ -57,5 +58,13 @@ Desktop.ini
 # pem key
 *.pem
 
+# patch files
+*.patch
+
 # logs
 *.log
+server_log.txt
+
+# Claude Code
+CLAUDE.md
+.claude/
